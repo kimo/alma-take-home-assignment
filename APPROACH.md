@@ -216,6 +216,8 @@ alma-take-home-assignment/
 │   ├── app/
 │   │   ├── page.tsx                    # Public lead form
 │   │   ├── thank-you/page.tsx          # Confirmation after submit
+│   │   ├── login/
+│   │   │   └── page.tsx               # Login page (admin@tryalma.ai / admin)
 │   │   ├── dashboard/
 │   │   │   ├── layout.tsx              # Sidebar + auth guard
 │   │   │   └── page.tsx               # Leads table

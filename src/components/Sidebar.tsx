@@ -13,12 +13,11 @@ export default function Sidebar() {
   ];
 
   return (
-    <aside className="w-[220px] min-h-screen bg-[#1a1a2e] text-white flex flex-col">
+    <aside className="w-[220px] min-h-screen bg-[#c8d9a3] text-gray-900 flex flex-col">
       <div className="px-5 pt-6 pb-4">
-        <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">
-          Admin View
-        </p>
-        <p className="text-xl font-light tracking-wide">alma</p>
+        <div className="w-16">
+          <img src="/alma-logo.svg" alt="alma" className="w-full h-auto" />
+        </div>
       </div>
 
       <nav className="flex-1 px-3 mt-4">
@@ -30,8 +29,8 @@ export default function Sidebar() {
               href={item.href}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg mb-1 text-sm transition-colors ${
                 isActive
-                  ? "bg-white/10 text-white"
-                  : "text-gray-400 hover:text-white hover:bg-white/5"
+                  ? "bg-black/10 text-gray-900 font-medium"
+                  : "text-gray-700 hover:text-gray-900 hover:bg-black/5"
               }`}
             >
               {item.icon}
@@ -41,12 +40,12 @@ export default function Sidebar() {
         })}
       </nav>
 
-      <div className="px-5 py-4 border-t border-white/10">
+      <div className="px-5 py-4 border-t border-black/10">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center text-sm font-medium">
+          <div className="w-8 h-8 rounded-full bg-black/15 flex items-center justify-center text-sm font-medium text-gray-800">
             A
           </div>
-          <span className="text-sm text-gray-300">Admin</span>
+          <span className="text-sm text-gray-700">Admin</span>
         </div>
       </div>
     </aside>

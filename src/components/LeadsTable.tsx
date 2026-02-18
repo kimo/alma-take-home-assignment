@@ -137,7 +137,12 @@ export default function LeadsTable() {
       <div>
         <span className="text-gray-500">Resume:</span>{" "}
         {record.resumeFileName ? (
-          <span className="text-gray-900">{record.resumeFileName}</span>
+          <a
+            href={`/api/leads/${record.id}/download`}
+            className="text-blue-600 hover:underline"
+          >
+            {record.resumeFileName}
+          </a>
         ) : (
           <span className="text-gray-400">Not uploaded</span>
         )}
@@ -201,7 +206,7 @@ export default function LeadsTable() {
           total,
           onChange: setPage,
           showSizeChanger: false,
-          position: ["bottomRight"],
+          placement: "end",
         }}
       />
     </div>

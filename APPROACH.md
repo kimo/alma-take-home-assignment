@@ -396,16 +396,27 @@ Phase 1 (Setup) → Phase 2 (API) → Phase 3 (Form) → Phase 4 (Dashboard)
 - Manual verification after each phase before committing
 
 ### Environment Variables
+- **Zero-config approach:** NextAuth secret has a hardcoded fallback in code (`"alma-take-home-demo-secret"`), so the reviewer never needs to touch env files
+- `.env.example` shipped for documentation only — not required to run
+- `NEXTAUTH_URL` defaults to `http://localhost:3000` in dev mode (Next.js auto-detects)
+
+```typescript
+// src/lib/auth.ts
+secret: process.env.NEXTAUTH_SECRET || "alma-take-home-demo-secret"
 ```
-# .env.local (not committed)
-NEXTAUTH_SECRET=dev-secret-for-take-home
-NEXTAUTH_URL=http://localhost:3000
+
+### Reviewer Experience
+```bash
+git clone https://github.com/kimo/alma-take-home-assignment.git
+cd alma-take-home-assignment
+npm install
+npm run dev
 ```
-```
-# .env.example (committed — for reviewer)
-NEXTAUTH_SECRET=any-random-string
-NEXTAUTH_URL=http://localhost:3000
-```
+- **Zero config.** No `.env` setup, no database, no Docker.
+- Open `http://localhost:3000` → public lead form
+- Go to `/dashboard` → redirected to login
+- Login: `admin@tryalma.ai` / `admin`
+- Dashboard pre-loaded with 8 seed leads matching the mock
 
 ---
 

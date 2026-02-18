@@ -101,7 +101,7 @@ export default function LeadsTable() {
         record.status === "PENDING" ? (
           <Button
             size="small"
-            type="link"
+            type="primary"
             onClick={(e) => {
               e.stopPropagation();
               handleStatusUpdate(record.id);
@@ -109,7 +109,9 @@ export default function LeadsTable() {
           >
             Mark as Reached Out
           </Button>
-        ) : null,
+        ) : (
+          <span className="text-gray-400 text-sm">Reached Out</span>
+        ),
     },
   ];
 

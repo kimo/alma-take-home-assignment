@@ -8,7 +8,11 @@ import Link from "next/link";
 export default function ThankYou() {
   return (
     <ConfigProvider theme={theme}>
-      <main className="min-h-screen flex items-center justify-center bg-white px-6">
+      <main className="min-h-screen bg-white px-6">
+        <p className="text-[#a0b878] text-sm tracking-widest uppercase pt-6 pl-2">
+          Assessment
+        </p>
+        <div className="flex items-center justify-center min-h-[calc(100vh-60px)]">
         <div className="text-center max-w-md">
           <CheckCircleFilled className="text-6xl text-[#6366f1] mb-6" />
           <h1 className="text-3xl font-bold text-gray-900 mb-4">Thank You</h1>
@@ -26,6 +30,7 @@ export default function ThankYou() {
               Go Back to Homepage
             </Button>
           </Link>
+        </div>
         </div>
       </main>
     </ConfigProvider>

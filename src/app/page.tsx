@@ -10,14 +10,14 @@ export default function Home() {
       <main className="min-h-screen">
         {/* Hero Section */}
         <div className="relative bg-gradient-to-br from-[#2d3319] via-[#3a4a1f] to-[#4a5a2a] overflow-hidden">
-          {/* Decorative shapes */}
-          <div className="absolute top-0 right-0 w-64 h-64 opacity-20">
-            <div className="absolute top-8 right-8 w-32 h-32 bg-[#6b8a3f] rounded-full blur-2xl" />
-            <div className="absolute top-16 right-24 w-24 h-24 bg-[#8aaa4f] rounded-full blur-xl" />
-            <div className="absolute top-4 right-40 w-16 h-16 bg-[#9aba5f] rounded-full blur-lg" />
+          {/* Decorative 3D shapes — right side */}
+          <div className="absolute top-0 right-0 w-80 h-full">
+            <div className="absolute top-6 right-12 w-40 h-40 bg-[#8aaa4f] rounded-[40%_60%_60%_40%] rotate-[-20deg] opacity-60 blur-sm" />
+            <div className="absolute top-20 right-28 w-32 h-32 bg-[#a0c45a] rounded-[50%_50%_40%_60%] rotate-[15deg] opacity-50 blur-sm" />
+            <div className="absolute top-2 right-48 w-24 h-24 bg-[#c0d88a] rounded-[45%_55%_50%_50%] rotate-[-10deg] opacity-40" />
           </div>
 
-          <div className="relative max-w-2xl mx-auto px-6 py-16 text-center">
+          <div className="relative max-w-2xl mx-auto px-6 py-16">
             <p className="text-[#a0b878] text-sm tracking-widest uppercase mb-2">
               Assessment
             </p>

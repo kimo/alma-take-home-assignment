@@ -156,7 +156,7 @@ export default function LeadsTable() {
       {/* Toolbar */}
       <div className="flex gap-3 mb-4">
         <Input
-          placeholder="Search by name"
+          placeholder="Search"
           prefix={<SearchOutlined className="text-gray-400" />}
           value={search}
           onChange={(e) => {
@@ -174,7 +174,7 @@ export default function LeadsTable() {
           }}
           className="w-40"
           options={[
-            { value: "all", label: "All Status" },
+            { value: "all", label: "Status" },
             { value: "PENDING", label: "Pending" },
             { value: "REACHED_OUT", label: "Reached Out" },
           ]}

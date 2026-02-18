@@ -84,22 +84,22 @@ export default function LeadForm() {
     >
       {/* Section 1: Personal Info */}
       <div className="mb-8">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="w-10 h-10 rounded-full bg-[#6366f1]/10 flex items-center justify-center">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6366f1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <div className="flex flex-col items-center text-center mb-6">
+          <div className="w-12 h-12 rounded-full bg-[#6366f1]/10 flex items-center justify-center mb-3">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6366f1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
               <rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
             </svg>
           </div>
-          <h2 className="text-xl font-semibold text-gray-900">
+          <h2 className="text-xl font-bold text-gray-900 mb-2">
             Want to understand your visa options?
           </h2>
+          <p className="text-gray-500 text-sm">
+            Submit the form below and our team of experienced attorneys will
+            review your information and send a preliminary assessment of your
+            case based on your goals.
+          </p>
         </div>
-        <p className="text-gray-500 text-sm mb-6 pl-[52px]">
-          Submit the form below and our team of experienced attorneys will
-          review your information and send a preliminary assessment of your
-          case based on your goals.
-        </p>
 
         <Form.Item
           name="firstName"
@@ -153,14 +153,14 @@ export default function LeadForm() {
 
       {/* Section 2: Visa Interest */}
       <div className="mb-8">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 rounded-full bg-[#6366f1]/10 flex items-center justify-center">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6366f1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <div className="flex flex-col items-center text-center mb-4">
+          <div className="w-12 h-12 rounded-full bg-[#6366f1]/10 flex items-center justify-center mb-3">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6366f1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
               <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" />
             </svg>
           </div>
-          <h2 className="text-xl font-semibold text-gray-900">
+          <h2 className="text-xl font-bold text-gray-900">
             Visa categories of interest?
           </h2>
         </div>
@@ -208,13 +208,13 @@ export default function LeadForm() {
 
       {/* Section 3: How can we help */}
       <div className="mb-8">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 rounded-full bg-[#6366f1]/10 flex items-center justify-center">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6366f1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <div className="flex flex-col items-center text-center mb-4">
+          <div className="w-12 h-12 rounded-full bg-[#6366f1]/10 flex items-center justify-center mb-3">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6366f1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
             </svg>
           </div>
-          <h2 className="text-xl font-semibold text-gray-900">
+          <h2 className="text-xl font-bold text-gray-900">
             How can we help you?
           </h2>
         </div>

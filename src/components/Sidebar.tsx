@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { UserOutlined, TeamOutlined, SettingOutlined } from "@ant-design/icons";
+import { TeamOutlined, SettingOutlined } from "@ant-design/icons";
 
 export default function Sidebar() {
   const pathname = usePathname();
@@ -43,8 +43,8 @@ export default function Sidebar() {
 
       <div className="px-5 py-4 border-t border-white/10">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center text-sm">
-            <UserOutlined />
+          <div className="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center text-sm font-medium">
+            A
           </div>
           <span className="text-sm text-gray-300">Admin</span>
         </div>

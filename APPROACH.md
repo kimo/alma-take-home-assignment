@@ -364,21 +364,197 @@ Pre-populate with the 8 leads from the mock (Jorge Ruiz, Bahar Zamir, etc.) so t
 
 ---
 
-## 5. Progress Log
+## 5. Development Workflow
 
-_Will be updated as we build._
+### Git Strategy
+- **Single branch:** `main` — no feature branches for a solo 24-hour sprint
+- **Frequent commits:** commit after each phase completion (verifiable progress)
+- **Commit message format:** `Phase X: description` (e.g., `Phase 1: project setup with antd5 + tailwind`)
+- **No force pushes** — clean linear history
 
-### Session Start
-- Analyzed assignment requirements
-- Analyzed both mockups in detail
-- Made architecture decisions
-- Created implementation plan
-- **Decision:** Skip JsonForms and Redux in favor of shipping a polished, well-tested core
-- **Decision:** Ant Design 5 over raw Tailwind — prior experience, production-grade Table/Form/Upload components, design tokens for theming, directly relevant to Alma's form-heavy immigration platform
+### Development Order & Dependencies
+
+```
+Phase 1 (Setup) → Phase 2 (API) → Phase 3 (Form) → Phase 4 (Dashboard)
+                                                          ↓
+                                              Phase 5 (Polish)
+                                                  ↓            ↘
+                                        Phase 5.5 (JsonForms)   Phase 6 (Tests + Docs)
+                                          [OPTIONAL]                  ↓
+                                                              Phase 7 (Submit)
+```
+
+- **Phase 1 → 2:** API before UI — form and dashboard need endpoints to hit
+- **Phase 3 and 4 are independent** of each other (both consume API), but doing form first because it's the public-facing page and simpler
+- **Phase 5 (Polish) after both screens work** — easier to tune spacing/colors when layout is stable
+- **Phase 5.5 (JsonForms) only if Phase 5 finishes early** — safe refactor since Antd form already works
+- **Phase 6 (Tests + Docs) after polish** — tests lock down final behavior, docs reflect final state
+
+### Dev Server Workflow
+- `npm run dev` running throughout
+- Browser open with both `/` (form) and `/dashboard` (leads table)
+- Manual verification after each phase before committing
+
+### Environment Variables
+```
+# .env.local (not committed)
+NEXTAUTH_SECRET=dev-secret-for-take-home
+NEXTAUTH_URL=http://localhost:3000
+```
+```
+# .env.example (committed — for reviewer)
+NEXTAUTH_SECRET=any-random-string
+NEXTAUTH_URL=http://localhost:3000
+```
 
 ---
 
-## 6. Design Trade-offs (for DESIGN.md later)
+## 6. Testing Strategy
+
+### What We Test (and Why)
+
+| Test | Type | What It Verifies | Priority |
+|------|------|-----------------|----------|
+| Lead form renders all fields | Component | All 7+ fields present and correct types | High |
+| Form validation — empty submit | Component | Error messages appear for all required fields | High |
+| Form validation — invalid email | Component | Email format validation triggers | High |
+| Form validation — invalid URL | Component | LinkedIn URL format validation triggers | Medium |
+| Form submit → API call | Integration | FormData posted correctly to /api/leads | High |
+| Leads table renders seed data | Component | All 8 mock rows display correctly | High |
+| Status filter works | Component | Filtering by Pending/Reached Out updates table | Medium |
+| Search filter works | Component | Name search filters table rows | Medium |
+| "Mark as Reached Out" button | Integration | PATCH call + table updates status | High |
+| API: POST /api/leads | Unit | Creates lead, returns id + PENDING status | High |
+| API: GET /api/leads | Unit | Returns paginated leads with filters | Medium |
+| API: PATCH /api/leads/[id] | Unit | Updates status correctly | High |
+
+### What We Don't Test (conscious trade-off for 24hr deadline)
+- **Auth flow** — NextAuth is well-tested library, mock credentials are simple
+- **File upload end-to-end** — would need mocking filesystem; manual verification sufficient
+- **CSS/visual regression** — no snapshot testing, manual visual check against mocks
+- **Accessibility** — Antd components have built-in a11y; no additional a11y testing
+
+### Test Stack
+- **Jest** — test runner (ships with create-next-app)
+- **React Testing Library** — component rendering + user interaction
+- **@testing-library/user-event** — realistic user events (typing, clicking)
+- **jest-environment-jsdom** — DOM environment for component tests
+
+### Test File Structure
+```
+src/__tests__/
+├── components/
+│   ├── LeadForm.test.tsx         # Form rendering + validation
+│   └── LeadsTable.test.tsx       # Table rendering + filters + actions
+└── api/
+    ├── leads.test.ts             # POST + GET endpoints
+    └── leads-id.test.ts          # PATCH endpoint
+```
+
+### Running Tests
+```bash
+npm test                  # run all tests
+npm test -- --coverage    # with coverage report
+npm test -- --watch       # watch mode during development
+```
+
+### Coverage Target
+- Aim for **meaningful coverage** of core paths, not a percentage target
+- All form fields validated, all API endpoints covered, table interactions tested
+- Skip covering boilerplate (layout, providers, config)
+
+---
+
+## 7. Release Plan
+
+### Pre-Submission Checklist
+
+**Functional Verification:**
+- [ ] Fresh `git clone` → `npm install` → `npm run dev` works on first try
+- [ ] Public form at `/` — all fields render, validation works, submit creates lead
+- [ ] Thank-you page at `/thank-you` — shows confirmation, "Go Back" works
+- [ ] Login at `/login` — admin@tryalma.ai / admin credentials work
+- [ ] Dashboard at `/dashboard` — table shows seed data, all 4 columns sort
+- [ ] Search by name filters correctly
+- [ ] Status dropdown filter works (All / Pending / Reached Out)
+- [ ] "Mark as Reached Out" button updates status
+- [ ] Row expand/drawer shows all lead info (email, LinkedIn, visas, resume, help message)
+- [ ] Pagination works (8 per page)
+- [ ] File upload accepts .pdf/.doc/.docx
+- [ ] Unauthenticated access to `/dashboard` redirects to login
+- [ ] `npm test` passes with no failures
+- [ ] `npm run build` succeeds with no errors
+
+**Visual Verification (vs mocks):**
+- [ ] Hero section: green gradient, heading text, decorative elements
+- [ ] Form: 3 sections with icons, proper field layout
+- [ ] Submit button: black, pill-shaped, centered
+- [ ] Dashboard sidebar: dark bg, "alma" logo, nav items, avatar
+- [ ] Table: clean rows, sort arrows, date format matches
+- [ ] Pagination style matches mock
+- [ ] Thank-you page: checkmark icon, text, button
+
+**Code Quality:**
+- [ ] No TypeScript errors (`npx tsc --noEmit`)
+- [ ] No ESLint warnings (`npm run lint`)
+- [ ] No hardcoded secrets (only in .env.local, not committed)
+- [ ] .env.example committed with placeholder values
+- [ ] No `console.log` left in production code
+- [ ] File uploads directory gitignored
+
+**Documentation:**
+- [ ] README.md — clear setup instructions (3 commands: clone, install, run)
+- [ ] README.md — login credentials documented
+- [ ] README.md — tech stack and key decisions summarized
+- [ ] DESIGN.md — system design document (architecture diagram, data flow, trade-offs)
+- [ ] APPROACH.md — this file, clean and complete
+
+### Submission Steps
+1. **Make repo public:** `gh repo edit kimo/alma-take-home-assignment --visibility public`
+2. **Verify public access:** open `https://github.com/kimo/alma-take-home-assignment` in incognito
+3. **Final local test:** clone into temp dir, install, run, verify everything works
+4. **Email to shuo@tryalma.ai:**
+   - Subject: `Take-Home Assignment — [Your Name]`
+   - Body: link to public GitHub repo
+   - Mention: APPROACH.md for how you thought through the problem, DESIGN.md for system design, README.md for setup
+5. **Keep repo public** until hearing back
+
+### Timeline Budget (24 hours)
+
+| Phase | Estimated | Cumulative | Deliverable |
+|-------|-----------|-----------|-------------|
+| 1. Setup | 15 min | 0:15 | Project scaffolded, antd + tailwind configured |
+| 2. API Routes | 30 min | 0:45 | All 3 endpoints working (test via curl) |
+| 3. Public Form | 1.5 hr | 2:15 | Form submits, validation works, thank-you page |
+| 4. Dashboard | 1.5 hr | 3:45 | Table, search, filter, pagination, status button, detail view |
+| 5. Polish | 1 hr | 4:45 | Pixel-perfect match to mocks, responsive |
+| 5.5. JsonForms | 2 hr | 6:45 | OPTIONAL — only if ahead of schedule |
+| 6. Tests + Docs | 1 hr | 5:45 (or 7:45) | Tests pass, README, DESIGN.md complete |
+| 7. Submit | 15 min | 6:00 (or 8:00) | Public repo, email sent |
+
+**Total core:** ~6 hours. **With JsonForms:** ~8 hours. Plenty of buffer within 24hr deadline.
+
+**Risk mitigation:** If any phase takes longer than estimated, skip Phase 5.5 (JsonForms) first, then reduce test coverage. Core functionality + mock match + documentation are non-negotiable.
+
+---
+
+## 8. Progress Log
+
+_Will be updated as we build._
+
+### Planning Phase (Pre-implementation)
+- Analyzed assignment requirements thoroughly
+- Analyzed both mockups in detail (field-by-field)
+- Created field-to-requirement mapping for both screens
+- Identified gap: "all information" requirement vs 4-column mock → resolved with expandable row/drawer
+- Made architecture decisions (antd5, Tailwind, NextAuth, Zod, in-memory store)
+- Evaluated and documented trade-offs (Redux: skip, JsonForms: optional Phase 5.5, styled-components: redundant with antd tokens)
+- Defined development workflow, testing strategy, and release plan
+- **Status: PLANNING COMPLETE — ready to implement on user's go**
+
+---
+
+## 9. Design Trade-offs (for DESIGN.md later)
 
 | Decision | Chose | Over | Why |
 |----------|-------|------|-----|
@@ -390,3 +566,5 @@ _Will be updated as we build._
 | State | Antd internal + fetch | Redux | Antd Table/Form manage their own UI state. Server state is simple fetch. Redux would add boilerplate with no benefit at this scale. |
 | Validation | Antd Form rules + Zod | react-hook-form | Antd Form has native validation UX (inline errors, required marks). Zod defines the schema. No need for a third form library. |
 | File upload | Antd Upload + local fs | Custom dropzone + S3 | Antd Upload gives drag-and-drop + file list UI. Local fs for demo scope. |
+| Testing | Component + API tests | E2E (Cypress/Playwright) | Component tests give fast feedback. E2E adds setup overhead for a 24hr take-home with 2 screens. |
+| Detail view | Expandable rows | Separate detail page | Keeps user in table context, less navigation. Satisfies "all information" requirement without leaving the mock's layout. |

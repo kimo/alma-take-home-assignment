@@ -113,4 +113,18 @@ export const seedLeads: Lead[] = [
     status: "PENDING",
     submittedAt: "2024-02-02T14:45:00.000Z",
   },
+  {
+    id: "9",
+    firstName: "Krishna",
+    lastName: "Guda",
+    email: "krishna.guda@example.com",
+    country: "India",
+    linkedIn: "https://www.linkedin.com/in/krishnamohanguda/",
+    visaInterests: ["I don't know"],
+    resumePath: null,
+    resumeFileName: "resume.pdf",
+    helpMessage: "I want to get my green card faster. I have the I-140 approved.",
+    status: "PENDING",
+    submittedAt: "2024-02-03T10:15:00.000Z",
+  },
 ];

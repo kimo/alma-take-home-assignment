@@ -185,28 +185,6 @@ export default function LeadForm() {
         </Form.Item>
       </div>
 
-      {/* Section 2.5: Resume Upload */}
-      <div className="mb-8">
-        <Form.Item
-          name="resume"
-          valuePropName="file"
-        >
-          <Dragger
-            beforeUpload={() => false}
-            maxCount={1}
-            accept=".pdf,.doc,.docx"
-          >
-            <p className="ant-upload-drag-icon">
-              <InboxOutlined />
-            </p>
-            <p className="ant-upload-text">Upload your resume / CV</p>
-            <p className="ant-upload-hint">
-              PDF, DOC, or DOCX files only
-            </p>
-          </Dragger>
-        </Form.Item>
-      </div>
-
       {/* Section 3: How can we help */}
       <div className="mb-8">
         <div className="flex flex-col items-center text-center mb-4">
@@ -228,9 +206,31 @@ export default function LeadForm() {
         >
           <TextArea
             rows={5}
-            placeholder="What are you hoping to achieve with your immigration case?"
+            placeholder="What is your current status and when does it expire? What is your past immigration history? Are you looking for long-term permanent residency or short-term employment visa or both? Are there any timeline considerations?"
             size="large"
           />
+        </Form.Item>
+      </div>
+
+      {/* Resume Upload */}
+      <div className="mb-8">
+        <Form.Item
+          name="resume"
+          valuePropName="file"
+        >
+          <Dragger
+            beforeUpload={() => false}
+            maxCount={1}
+            accept=".pdf,.doc,.docx"
+          >
+            <p className="ant-upload-drag-icon">
+              <InboxOutlined />
+            </p>
+            <p className="ant-upload-text">Upload your resume / CV</p>
+            <p className="ant-upload-hint">
+              PDF, DOC, or DOCX files only
+            </p>
+          </Dragger>
         </Form.Item>
       </div>
 

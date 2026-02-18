@@ -116,7 +116,7 @@ export default function LeadsTable() {
   ];
 
   const expandedRowRender = (record: Lead) => (
-    <div className="grid grid-cols-2 gap-4 py-2 px-4 text-sm">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-2 px-4 text-sm">
       <div>
         <span className="text-gray-500">Email:</span>{" "}
         <span className="text-gray-900">{record.email}</span>
@@ -149,7 +149,7 @@ export default function LeadsTable() {
           <span className="text-gray-400">Not uploaded</span>
         )}
       </div>
-      <div className="col-span-2">
+      <div className="md:col-span-2">
         <span className="text-gray-500">Message:</span>{" "}
         <span className="text-gray-900">{record.helpMessage}</span>
       </div>

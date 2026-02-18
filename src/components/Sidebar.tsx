@@ -2,22 +2,30 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { TeamOutlined, SettingOutlined } from "@ant-design/icons";
+import { TeamOutlined, SettingOutlined, MenuOutlined, CloseOutlined } from "@ant-design/icons";
+import { useState } from "react";
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const [open, setOpen] = useState(false);
 
   const navItems = [
     { href: "/dashboard", label: "Leads", icon: <TeamOutlined /> },
     { href: "/dashboard/settings", label: "Settings", icon: <SettingOutlined /> },
   ];
 
-  return (
-    <aside className="w-[220px] min-h-screen bg-[#c8d9a3] text-gray-900 flex flex-col">
-      <div className="px-5 pt-6 pb-4">
+  const sidebarContent = (
+    <>
+      <div className="px-5 pt-6 pb-4 flex items-center justify-between">
         <div className="w-16">
           <img src="/alma-logo.svg" alt="alma" className="w-full h-auto" />
         </div>
+        <button
+          className="lg:hidden text-gray-700 text-xl"
+          onClick={() => setOpen(false)}
+        >
+          <CloseOutlined />
+        </button>
       </div>
 
       <nav className="flex-1 px-3 mt-4">
@@ -27,6 +35,7 @@ export default function Sidebar() {
             <Link
               key={item.href}
               href={item.href}
+              onClick={() => setOpen(false)}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg mb-1 text-sm transition-colors ${
                 isActive
                   ? "bg-black/10 text-gray-900 font-medium"
@@ -48,6 +57,42 @@ export default function Sidebar() {
           <span className="text-sm text-gray-700">Admin</span>
         </div>
       </div>
-    </aside>
+    </>
+  );
+
+  return (
+    <>
+      {/* Mobile header bar */}
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-[#c8d9a3] px-4 py-3 flex items-center gap-3">
+        <button onClick={() => setOpen(true)} className="text-gray-900 text-lg">
+          <MenuOutlined />
+        </button>
+        <div className="w-14">
+          <img src="/alma-logo.svg" alt="alma" className="w-full h-auto" />
+        </div>
+      </div>
+
+      {/* Mobile overlay */}
+      {open && (
+        <div
+          className="lg:hidden fixed inset-0 bg-black/30 z-40"
+          onClick={() => setOpen(false)}
+        />
+      )}
+
+      {/* Mobile slide-out sidebar */}
+      <aside
+        className={`lg:hidden fixed top-0 left-0 h-full w-[220px] bg-[#c8d9a3] text-gray-900 flex flex-col z-50 transition-transform duration-200 ${
+          open ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        {sidebarContent}
+      </aside>
+
+      {/* Desktop sidebar */}
+      <aside className="hidden lg:flex w-[220px] min-h-screen bg-[#c8d9a3] text-gray-900 flex-col shrink-0">
+        {sidebarContent}
+      </aside>
+    </>
   );
 }

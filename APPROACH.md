@@ -565,7 +565,122 @@ _Will be updated as we build._
 
 ---
 
-## 9. Design Trade-offs (for DESIGN.md later)
+## 9. Architecture Diagrams (for DESIGN.md)
+
+### System Component Diagram
+
+```mermaid
+graph TB
+    subgraph Browser
+        PF["/ — Public Lead Form<br/>(Antd Form + Zod)"]
+        TY["/thank-you — Confirmation"]
+        LG["/login — Auth Page"]
+        DB["/dashboard — Leads Table<br/>(Antd Table + Search + Filter)"]
+    end
+
+    subgraph "Next.js Server (App Router)"
+        subgraph "API Routes"
+            POST["POST /api/leads<br/>Create lead + save file"]
+            GET["GET /api/leads<br/>?page&search&status"]
+            PATCH["PATCH /api/leads/[id]<br/>Update status"]
+            AUTH["POST /api/auth/[...nextauth]<br/>Credentials login"]
+        end
+
+        subgraph "Data Layer"
+            STORE["In-Memory Store<br/>(Map&lt;string, Lead&gt;)"]
+            SEED["Seed Data<br/>(8 mock leads)"]
+            FS["Local Filesystem<br/>(uploads/)"]
+        end
+
+        MW["NextAuth Session<br/>Middleware"]
+    end
+
+    PF -->|"FormData (multipart)"| POST
+    POST -->|"save lead"| STORE
+    POST -->|"save resume"| FS
+    POST -->|"redirect"| TY
+
+    LG -->|"credentials"| AUTH
+    AUTH -->|"JWT session"| MW
+
+    DB -->|"fetch leads"| GET
+    DB -->|"update status"| PATCH
+    GET -->|"query"| STORE
+    PATCH -->|"mutate"| STORE
+
+    MW -.->|"protects"| GET
+    MW -.->|"protects"| PATCH
+    MW -.->|"guards"| DB
+
+    SEED -->|"init"| STORE
+
+    style PF fill:#e8f5e9,stroke:#2e7d32
+    style DB fill:#e3f2fd,stroke:#1565c0
+    style STORE fill:#fff3e0,stroke:#e65100
+    style MW fill:#fce4ec,stroke:#c62828
+```
+
+### Data Flow — Lead Submission
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant Form as Public Form (/)
+    participant API as POST /api/leads
+    participant Store as In-Memory Store
+    participant FS as Local Filesystem
+    participant TY as Thank You Page
+
+    User->>Form: Fill out form fields
+    Form->>Form: Antd Form + Zod validation
+    alt Validation fails
+        Form-->>User: Inline error messages
+    end
+    User->>Form: Click Submit
+    Form->>API: POST FormData (fields + resume file)
+    API->>Store: store.set(id, lead) — status: PENDING
+    API->>FS: Save resume to uploads/{id}-{filename}
+    API-->>Form: 201 { id, status: "PENDING" }
+    Form->>TY: router.push("/thank-you")
+    TY-->>User: "Thank You" confirmation
+```
+
+### Data Flow — Dashboard Status Update
+
+```mermaid
+sequenceDiagram
+    actor Admin
+    participant Login as Login Page
+    participant Auth as NextAuth
+    participant Dash as Dashboard
+    participant GET as GET /api/leads
+    participant PATCH as PATCH /api/leads/[id]
+    participant Store as In-Memory Store
+
+    Admin->>Login: admin@tryalma.ai / admin
+    Login->>Auth: Authenticate
+    Auth-->>Admin: JWT session cookie
+
+    Admin->>Dash: Navigate to /dashboard
+    Dash->>GET: Fetch leads (?page=1&limit=8)
+    GET->>Store: Query all leads
+    Store-->>GET: Lead[]
+    GET-->>Dash: { leads, total, page, totalPages }
+    Dash-->>Admin: Render table (8 rows)
+
+    Admin->>Dash: Click "Mark as Reached Out"
+    Dash->>PATCH: PATCH /api/leads/{id} { status: "REACHED_OUT" }
+    PATCH->>Store: Update lead status
+    Store-->>PATCH: Updated lead
+    PATCH-->>Dash: { id, status: "REACHED_OUT" }
+    Dash->>GET: Re-fetch leads
+    GET-->>Dash: Updated list
+    Dash-->>Admin: Table refreshed — status changed
+```
+
+---
+
+## 10. Design Trade-offs (for DESIGN.md later)
 
 | Decision | Chose | Over | Why |
 |----------|-------|------|-----|

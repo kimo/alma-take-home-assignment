@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Table, Input, Select, Button, Tag, message } from "antd";
+import { Table, Input, Select, Button, message } from "antd";
 import { SearchOutlined } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
 import type { Lead, LeadsResponse } from "@/lib/types";
@@ -82,10 +82,11 @@ export default function LeadsTable() {
       dataIndex: "status",
       key: "status",
       sorter: (a, b) => a.status.localeCompare(b.status),
-      render: (status: string) => {
-        const label = status === "REACHED_OUT" ? "Reached Out" : "Pending";
-        return <Tag color={status === "REACHED_OUT" ? "green" : "default"}>{label}</Tag>;
-      },
+      render: (status: string) => (
+        <span className="text-sm">
+          {status === "REACHED_OUT" ? "Reached Out" : "Pending"}
+        </span>
+      ),
     },
     {
       title: "Country",
@@ -186,6 +187,7 @@ export default function LeadsTable() {
         dataSource={leads}
         rowKey="id"
         loading={loading}
+        scroll={{ x: 700 }}
         expandable={{
           expandedRowRender,
           expandedRowKeys,
@@ -199,6 +201,7 @@ export default function LeadsTable() {
           total,
           onChange: setPage,
           showSizeChanger: false,
+          position: ["bottomRight"],
         }}
       />
     </div>

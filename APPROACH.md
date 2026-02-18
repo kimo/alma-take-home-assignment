@@ -24,12 +24,24 @@
 |---|-------|----------|-----------|
 | 1 | Next.js API routes | YES | Trivial to add, shows full-stack |
 | 2 | JsonForms (config-driven) | SKIP | High learning curve, risky for 24hr timeline |
-| 3 | State management (Redux) | SKIP — use React Query | Redux is overkill here, React Query is more appropriate for server state |
+| 3 | State management (Redux) | SKIP | Antd Table/Form manage UI state internally. Server state is simple fetch + useState. Redux adds boilerplate with no benefit at this scale. |
 | 4 | Unit tests | YES | Key components only — form + leads table |
-| 5 | Responsive design | YES | Tailwind makes this easy |
+| 5 | Responsive design | YES | Antd responsive + Tailwind utilities |
 | 6 | TypeScript | YES | Free win, already standard |
-| 7 | Form validation feedback | YES | Zod + react-hook-form |
+| 7 | Form validation feedback | YES | Antd Form built-in + Zod schema |
 | 8 | System design document | YES | Required anyway, make it thorough |
+
+### Tech Requirements → Implementation Mapping
+
+| Requirement | Implementation | Phase |
+|---|---|---|
+| Use Next.js | Next.js 15, App Router, TypeScript | Phase 1 |
+| Mock API / Bonus: API routes | Real Next.js API routes: `POST /api/leads`, `GET /api/leads`, `PATCH /api/leads/[id]`. In-memory store — fully functional, not mocked. | Phase 2 |
+| Mock authentication | NextAuth.js credentials provider. Hardcoded login (admin@tryalma.ai / admin). `/dashboard` protected via session check. Real auth pattern, mock credentials. | Phase 4 |
+| File upload for resume/CV | Antd `<Upload>` component (drag-and-drop + file list UI) → Next.js API route handles multipart FormData → saves to local `uploads/` directory. | Phase 2 (API) + Phase 3 (UI) |
+| Form validation | Antd Form built-in rules (required, email format, URL format) + Zod schema for type-safe validation. Inline error messages per field. | Phase 3 |
+| Style with CSS or CSS-in-JS | Ant Design 5 (CSS-in-JS via design tokens) + Tailwind CSS for layout. `ConfigProvider` customizes theme to match mock's minimal aesthetic. | Phase 1 (setup) + Phase 3/4 |
+| Match the mocks closely | Highest priority. Dedicated polish pass in Phase 5 for spacing, fonts, colors. Seed data matches mock exactly. | Phase 5 |
 
 ---
 
@@ -128,19 +140,36 @@
 |-------|--------|-----|
 | Framework | Next.js 15 (App Router) | Required. App Router is current standard. |
 | Language | TypeScript | Bonus points + type safety |
-| Styling | Tailwind CSS | Fast to implement, responsive out of box, clean output |
-| Form handling | react-hook-form + Zod | Industry standard, great validation UX |
+| UI Library | Ant Design 5 (antd) | Production-grade Table, Form, Upload components. Built-in sorting, pagination, validation. Design tokens for theme customization. Prior experience = faster delivery. |
+| Styling | Ant Design tokens + Tailwind CSS (utility) | Antd ConfigProvider for component theming (black buttons, minimal borders). Tailwind for layout utilities and custom sections (hero, form sections) where antd components don't apply. |
+| Form handling | Ant Design Form + Zod | Antd Form has built-in validation UX, field-level error messages, and all input types needed (Input, Select, Checkbox.Group, Upload, TextArea). Zod for schema definition. |
 | API | Next.js API routes | Bonus points, keeps it self-contained |
 | Storage | In-memory store (Map) | Take-home scope — no need for a real DB. Data persists during server lifetime. |
 | Auth | NextAuth.js with credentials provider | Real auth pattern with mock credentials (admin@tryalma.ai / admin) |
 | Testing | Jest + React Testing Library | Standard for Next.js |
-| File upload | Next.js API route + local filesystem | Simple, works for demo |
+| File upload | Antd Upload + Next.js API route + local filesystem | Antd Upload gives drag-and-drop + file list UI. API route saves to local fs. |
+
+### Why these choices:
+
+**Ant Design 5 over raw Tailwind/styled-components:**
+- `<Table>` component solves 60% of the dashboard: sorting, pagination, column config, search — all built-in and matching the mock's table pattern
+- `<Form>` component handles validation UX (error messages, required fields, field-level feedback) without manual wiring
+- `<Upload>` component provides file upload with progress and file list display
+- Design tokens via `ConfigProvider` allow customizing to match Alma's minimal aesthetic (black buttons, clean borders) without fighting the library
+- Prior hands-on experience with antd5 = faster delivery within 24hr deadline
+- Relevant to Alma's domain: immigration platforms need many form types at scale — a component library with built-in form patterns is the right production choice
+
+**Tailwind CSS as complement (not replacement):**
+- Used for the hero section, form section layouts with icons, and custom spacing — areas where antd components don't apply
+- Responsive utilities (`md:`, `lg:`) for mobile adaptation
+- Co-exists cleanly with antd via `tailwind-antd` prefix config to avoid class conflicts
 
 ### Why NOT these alternatives:
 - **SQLite/Prisma** — overkill for a take-home, adds setup complexity for the reviewer
-- **Redux** — the assignment suggests it, but this app has simple server state. React Query or even server components + fetch is cleaner. Would mention in design doc as a conscious trade-off.
-- **JsonForms** — learning curve too high for 24hr timeline, risk of burning time
-- **styled-components** — Tailwind is faster to ship and matches the clean mock aesthetic
+- **Redux** — the assignment suggests it, but this app has simple server state. Antd Table + Form manage their own UI state internally. Server state is simple enough for fetch + useState. Would mention in design doc as a conscious trade-off.
+- **JsonForms** — interesting config-driven approach, but learning curve too high for 24hr timeline. Would explore in production context where forms change frequently (immigration visa types).
+- **styled-components** — Antd5 already provides component-level theming via design tokens. Adding styled-components on top would be redundant. Tailwind handles the remaining layout needs.
+- **Raw Tailwind only** — would require building Table (sorting, pagination), Form (validation, error states), Upload (file handling) from scratch. Antd provides these production-ready.
 
 ### Project Structure
 
@@ -227,6 +256,8 @@ Pre-populate with the 8 leads from the mock (Jorge Ruiz, Bahar Zamir, etc.) so t
 
 ### Phase 1: Project Setup (~15 min)
 - [ ] `npx create-next-app` with TypeScript + Tailwind + App Router
+- [ ] Install antd, @ant-design/icons
+- [ ] Configure antd ConfigProvider with custom theme tokens (black primary, minimal borders)
 - [ ] Set up project structure (folders, types, schema)
 - [ ] Initialize git repo
 - [ ] Add seed data
@@ -238,22 +269,23 @@ Pre-populate with the 8 leads from the mock (Jorge Ruiz, Bahar Zamir, etc.) so t
 - [ ] PATCH /api/leads/[id] (status update)
 
 ### Phase 3: Public Lead Form (~1.5 hr)
-- [ ] Hero section (green gradient + heading)
-- [ ] Form sections with icons and headings
-- [ ] All 7+ fields with proper types (dropdown, checkboxes, textarea, file)
-- [ ] Zod validation + error messages
+- [ ] Hero section (olive/green gradient + heading — Tailwind for layout)
+- [ ] Form sections with purple icons and headings
+- [ ] Antd Form: Input (name, email, LinkedIn), Select (country), Checkbox.Group (visas), Upload (resume), TextArea (help)
+- [ ] Zod schema wired to Antd Form rules for validation feedback
 - [ ] Submit → POST to API → redirect to thank-you page
 - [ ] Thank-you confirmation page
+- [ ] Theme overrides: pill-shaped button, thin input borders to match mock
 
 ### Phase 4: Dashboard (~1.5 hr)
 - [ ] NextAuth setup with mock credentials
 - [ ] Login page
-- [ ] Sidebar component (nav + user)
-- [ ] Leads table with columns matching mock
-- [ ] Search functionality
-- [ ] Status filter dropdown
-- [ ] Pagination (8 per page)
-- [ ] Status toggle (PENDING → REACHED_OUT)
+- [ ] Sidebar component (nav + user — Tailwind layout, dark bg)
+- [ ] Antd Table: columns Name, Submitted, Status, Country with built-in sorters
+- [ ] Antd Input.Search for name filtering
+- [ ] Antd Select for status filter dropdown
+- [ ] Antd Table pagination (8 per page)
+- [ ] Status toggle (PENDING → REACHED_OUT) — inline button or row action
 
 ### Phase 5: Polish (~1 hr)
 - [ ] Responsive design check (mobile form, mobile table)
@@ -284,6 +316,7 @@ _Will be updated as we build._
 - Made architecture decisions
 - Created implementation plan
 - **Decision:** Skip JsonForms and Redux in favor of shipping a polished, well-tested core
+- **Decision:** Ant Design 5 over raw Tailwind — prior experience, production-grade Table/Form/Upload components, design tokens for theming, directly relevant to Alma's form-heavy immigration platform
 
 ---
 
@@ -292,9 +325,10 @@ _Will be updated as we build._
 | Decision | Chose | Over | Why |
 |----------|-------|------|-----|
 | App Router | Next.js App Router | Pages Router | Modern standard, better server components |
+| UI Library | Ant Design 5 | Raw components | Production-grade Table, Form, Upload — solves both screens with built-in sorting, pagination, validation. Prior experience. Relevant to Alma's form-heavy domain. |
+| Styling | Antd tokens + Tailwind | styled-components / Tailwind-only | Antd tokens for component theming, Tailwind for layout and custom sections (hero). Best of both. |
 | Storage | In-memory Map | SQLite/Prisma | Zero setup for reviewer, sufficient for demo |
 | Auth | NextAuth credentials | Custom JWT | Real auth library, production pattern |
-| Styling | Tailwind CSS | styled-components | Faster to ship, better responsive utilities |
-| State | Server components + fetch | Redux | Simpler for this scope, less boilerplate |
-| Validation | Zod + react-hook-form | Manual validation | Type-safe schemas, great error UX |
-| File upload | Local filesystem | S3/cloud | Demo scope, no external dependencies |
+| State | Antd internal + fetch | Redux | Antd Table/Form manage their own UI state. Server state is simple fetch. Redux would add boilerplate with no benefit at this scale. |
+| Validation | Antd Form rules + Zod | react-hook-form | Antd Form has native validation UX (inline errors, required marks). Zod defines the schema. No need for a third form library. |
+| File upload | Antd Upload + local fs | Custom dropzone + S3 | Antd Upload gives drag-and-drop + file list UI. Local fs for demo scope. |

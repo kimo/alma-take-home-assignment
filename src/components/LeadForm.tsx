@@ -75,12 +75,13 @@ export default function LeadForm() {
   };
 
   return (
+    <div className="flex justify-center">
     <Form
       form={form}
       layout="vertical"
       onFinish={onFinish}
       requiredMark={false}
-      className="w-full max-w-[480px] mx-auto"
+      style={{ width: "100%", maxWidth: 480 }}
     >
       {/* Section 1: Personal Info */}
       <div className="mb-8">
@@ -246,5 +247,6 @@ export default function LeadForm() {
         </Button>
       </Form.Item>
     </Form>
+    </div>
   );
 }

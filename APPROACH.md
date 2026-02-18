@@ -23,7 +23,7 @@
 | # | Bonus | Decision | Rationale |
 |---|-------|----------|-----------|
 | 1 | Next.js API routes | YES | Trivial to add, shows full-stack |
-| 2 | JsonForms (config-driven) | SKIP | High learning curve, risky for 24hr timeline |
+| 2 | JsonForms (config-driven) | IF TIME — Phase 5.5 | Build form with Antd first (safe). If time remains, refactor to JsonForms with custom Antd renderers (~2 hrs). Form looks identical — difference is config-driven architecture under the hood. |
 | 3 | State management (Redux) | SKIP | Antd Table/Form manage UI state internally. Server state is simple fetch + useState. Redux adds boilerplate with no benefit at this scale. |
 | 4 | Unit tests | YES | Key components only — form + leads table |
 | 5 | Responsive design | YES | Antd responsive + Tailwind utilities |
@@ -62,34 +62,55 @@
 - Heading: "Want to understand your visa options?"
 - Subtext: "Submit the form below and our team of experienced attorneys will review your information and send a preliminary assessment of your case based on your goals."
 - Fields:
-  - First Name (text input, placeholder style)
-  - Last Name (text input)
-  - Email (text input)
-  - Country of Citizenship (dropdown with chevron — NOTE: not in written requirements but IS in mock)
-  - LinkedIn / Personal Website URL (text input)
+  - First Name → Antd `<Input>` | required
+  - Last Name → Antd `<Input>` | required
+  - Email → Antd `<Input>` | required, email format validation
+  - Country of Citizenship → Antd `<Select>` with country options | required (NOTE: not in written requirements but IS in mock — including it to match mock)
+  - LinkedIn / Personal Website URL → Antd `<Input>` | required, URL format validation
 
 **Section 2: Visa Interest** (briefcase/suitcase icon)
 - Heading: "Visa categories of interest?"
-- Checkboxes (multi-select):
+- → Antd `<Checkbox.Group>` | required (at least one)
+- Options:
   - O-1
   - EB-1A
   - EB-2 NIW
   - I don't know
 
+**Section 2.5: Resume Upload** (between visa interest and help message)
+- → Antd `<Upload>` with drag-and-drop | required
+- Accepts: .pdf, .doc, .docx
+- Stored via POST to `/api/leads` as multipart FormData → saved to local `uploads/` directory
+- NOTE: Not clearly visible in mock but explicitly required in assignment. Placed here as logical position.
+
 **Section 3: Additional Info** (heart icon)
 - Heading: "How can we help you?"
-- Large textarea with placeholder text
-- Resume/CV upload (in requirements, not clearly visible in mock — add between sections 2 and 3 or after textarea)
+- → Antd `<Input.TextArea>` with large rows | required
+- This is the "Open long input" from requirements
 
 **Submit:**
 - Black pill-shaped button, centered: "Submit"
+- → Antd `<Button type="primary" htmlType="submit">` with theme override for pill shape (borderRadius: 9999)
 
-**Confirmation Page (after submit):**
+**Confirmation Page (after submit — `/thank-you`):**
 - Clean white page, centered
 - Purple/blue checkmark icon
 - "Thank You" heading (bold)
 - "Your information was submitted to our team of immigration attorneys. Expect an email from hello@tryalma.ai"
-- Black pill button: "Go Back to Homepage"
+- Black pill button: "Go Back to Homepage" → links to `/`
+
+**Field-to-Requirement Mapping:**
+| Assignment Requirement | Mock Label | Component | Validation |
+|---|---|---|---|
+| First Name | First Name | `<Input>` | required |
+| Last Name | Last Name | `<Input>` | required |
+| Email | Email | `<Input>` | required, email format |
+| Linkedin | LinkedIn / Personal Website URL | `<Input>` | required, URL format |
+| Visas that you're interested | Visa categories of interest? | `<Checkbox.Group>` | required (min 1) |
+| Resume / CV (file upload) | (not in mock, add section) | `<Upload>` | required, .pdf/.doc/.docx |
+| Open long input | How can we help you? | `<Input.TextArea>` | required |
+| — (mock only) | Country of Citizenship | `<Select>` | required |
+| Confirmation message | Thank You page | `/thank-you` route | — |
 
 ### Internal Leads List (Page: `/dashboard`)
 
@@ -124,11 +145,27 @@
 | Anand Jain | 02/02/2024, 2:45 PM | Reached Out | Mexico |
 | Anna Voronova | 02/02/2024, 2:45 PM | Pending | France |
 
+**Requirement-to-Implementation Mapping:**
+
+| Assignment Requirement | Implementation | Component |
+|---|---|---|
+| Internal UI guarded by authentication | NextAuth.js session check. Unauthenticated users redirected to `/login`. | Phase 4 — middleware or layout-level session guard |
+| Display list of leads with **all** information | Table shows 4 summary columns (matching mock). Click row → expandable detail or drawer showing ALL fields (email, LinkedIn, visa interests, resume download, help message). | Antd `<Table expandable>` or Antd `<Drawer>` on row click |
+| State starts as PENDING | Default status in seed data and API POST response. | `status: "PENDING"` in store + API |
+| Manually transition PENDING → REACHED_OUT | Explicit button per row. Two options: (a) button in a 5th "Action" column, or (b) clickable status cell. Going with **(a) Action column with button** since requirement explicitly says "Include a button". | Antd `<Button size="small">` in table Action column — only visible when status is PENDING |
+| Match the mock | Table: 4 visible columns + Action column for status button. Sidebar, search, filter, pagination all match mock layout. | Phase 5 polish |
+
+**Design decision — "all the information" vs mock:**
+The mock only shows 4 columns (Name, Submitted, Status, Country), but the requirement says "display a list of leads with all the information filled in by the prospect." Resolution:
+- **Table view** = 4 summary columns + Action button (matches mock)
+- **Expanded/detail view** = shows remaining fields (email, LinkedIn, visa interests, resume file, help message)
+- This satisfies both "match the mock" AND "all the information"
+
 **Observations:**
-- Table only shows 4 columns, not all form fields — detail view needed for full info
-- No visible "change status" button — likely clicking status or row opens detail/action
-- Search likely filters by name
-- Status dropdown filters by Pending/Reached Out
+- Search filters by name (client-side on fetched data)
+- Status dropdown filters by Pending/Reached Out/All
+- Pagination: 8 rows per page, matching mock
+- Action button shows "Mark as Reached Out" only for PENDING leads. Once REACHED_OUT, show disabled/greyed text or no button.
 
 ---
 
@@ -167,7 +204,7 @@
 ### Why NOT these alternatives:
 - **SQLite/Prisma** — overkill for a take-home, adds setup complexity for the reviewer
 - **Redux** — the assignment suggests it, but this app has simple server state. Antd Table + Form manage their own UI state internally. Server state is simple enough for fetch + useState. Would mention in design doc as a conscious trade-off.
-- **JsonForms** — interesting config-driven approach, but learning curve too high for 24hr timeline. Would explore in production context where forms change frequently (immigration visa types).
+- **JsonForms** — config-driven form rendering. No official Antd renderer set — requires writing custom renderers mapping JsonForms controls to Antd components. Planned as optional Phase 5.5 refactor if time allows. In production, eliminates dev cycles for form changes (non-engineers edit JSON config instead of React code). Highly relevant for Alma's domain where different visa types need different forms and immigration law changes frequently.
 - **styled-components** — Antd5 already provides component-level theming via design tokens. Adding styled-components on top would be redundant. Tailwind handles the remaining layout needs.
 - **Raw Tailwind only** — would require building Table (sorting, pagination), Form (validation, error states), Upload (file handling) from scratch. Antd provides these production-ready.
 
@@ -278,20 +315,41 @@ Pre-populate with the 8 leads from the mock (Jorge Ruiz, Bahar Zamir, etc.) so t
 - [ ] Theme overrides: pill-shaped button, thin input borders to match mock
 
 ### Phase 4: Dashboard (~1.5 hr)
-- [ ] NextAuth setup with mock credentials
-- [ ] Login page
+- [ ] NextAuth setup with mock credentials (admin@tryalma.ai / admin)
+- [ ] Login page (`/login`)
+- [ ] Auth guard: unauthenticated users redirected to `/login`
 - [ ] Sidebar component (nav + user — Tailwind layout, dark bg)
 - [ ] Antd Table: columns Name, Submitted, Status, Country with built-in sorters
+- [ ] Action column: "Mark as Reached Out" `<Button>` per row (only shown for PENDING leads) — satisfies "Include a button to change the state"
+- [ ] Row expand or Drawer on row click → shows ALL lead info (email, LinkedIn, visa interests, resume download link, help message) — satisfies "display all the information"
 - [ ] Antd Input.Search for name filtering
-- [ ] Antd Select for status filter dropdown
+- [ ] Antd Select for status filter dropdown (All / Pending / Reached Out)
 - [ ] Antd Table pagination (8 per page)
-- [ ] Status toggle (PENDING → REACHED_OUT) — inline button or row action
+- [ ] PATCH `/api/leads/[id]` call on button click → update status → refresh table
 
 ### Phase 5: Polish (~1 hr)
 - [ ] Responsive design check (mobile form, mobile table)
 - [ ] Loading states
 - [ ] Error handling
 - [ ] Match mock styling precisely (spacing, fonts, colors)
+
+### Phase 5.5: JsonForms Refactor — OPTIONAL (~2 hr, only if ahead of schedule)
+**Strategy:** Form already works with Antd. This phase refactors the form definition from JSX to JSON config while keeping the exact same UI.
+- [ ] Install `@jsonforms/core`, `@jsonforms/react`
+- [ ] Extract lead form data shape into JSON Schema (`schemas/lead-form.schema.json`)
+- [ ] Define UI Schema for section layout (`schemas/lead-form.uischema.json`)
+- [ ] Write custom Antd renderers (wrap existing Antd components):
+  - [ ] TextInputRenderer → `<Input>`
+  - [ ] EmailRenderer → `<Input>` with email rules
+  - [ ] SelectRenderer → `<Select>` (country dropdown)
+  - [ ] CheckboxGroupRenderer → `<Checkbox.Group>` (visa interests)
+  - [ ] FileUploadRenderer → `<Upload>` (resume)
+  - [ ] TextAreaRenderer → `<Input.TextArea>` (help message)
+- [ ] Register renderers with JsonForms `<JsonForms>` component
+- [ ] Verify form looks identical to Antd-only version
+- [ ] Add note in DESIGN.md explaining config-driven architecture value for Alma's domain
+
+**Why this order works:** If anything goes wrong, revert to the working Antd form. Zero risk to the submission.
 
 ### Phase 6: Documentation + Tests (~1 hr)
 - [ ] Unit tests for form validation + leads table

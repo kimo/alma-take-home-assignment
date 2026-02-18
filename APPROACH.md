@@ -20,16 +20,16 @@
 | 5 | Match the mocks closely | Must have |
 
 ### Bonus Items (from assignment)
-| # | Bonus | Decision | Rationale |
-|---|-------|----------|-----------|
-| 1 | Next.js API routes | YES | Trivial to add, shows full-stack |
-| 2 | JsonForms (config-driven) | IF TIME — Phase 5.5 | Build form with Antd first (safe). If time remains, refactor to JsonForms with custom Antd renderers (~2 hrs). Form looks identical — difference is config-driven architecture under the hood. |
-| 3 | State management (Redux) | SKIP | Antd Table/Form manage UI state internally. Server state is simple fetch + useState. Redux adds boilerplate with no benefit at this scale. |
-| 4 | Unit tests | YES | Key components only — form + leads table |
-| 5 | Responsive design | YES | Antd responsive + Tailwind utilities |
-| 6 | TypeScript | YES | Free win, already standard |
-| 7 | Form validation feedback | YES | Antd Form built-in + Zod schema |
-| 8 | System design document | YES | Required anyway, make it thorough |
+| # | Bonus | Decision | Implementation | Phase |
+|---|-------|----------|---------------|-------|
+| 1 | Next.js API routes | **YES** | 3 real endpoints: `POST /api/leads`, `GET /api/leads`, `PATCH /api/leads/[id]`. In-memory store — fully functional, not mocked. | Phase 2 |
+| 2 | JsonForms (config-driven) | **IF TIME — Phase 5.5** | Build form with Antd first (safe). If time remains, refactor to JsonForms with custom Antd renderers (~2 hrs). Form looks identical — difference is config-driven architecture under the hood. | Phase 5.5 (optional) |
+| 3 | State management (Redux) | **SKIP** | Antd Table/Form manage UI state internally. Server state is simple fetch + useState. Redux adds boilerplate with no benefit at this scale. Documented as conscious trade-off in DESIGN.md — shows architectural judgment. | — |
+| 4 | Unit tests | **YES** | 12 test cases: form rendering, validation (empty/email/URL), submit flow, table rendering, filters, status update, all 3 API endpoints. Jest + React Testing Library. | Phase 6 |
+| 5 | Responsive design | **YES** | Antd responsive components + Tailwind breakpoint utilities (`md:`, `lg:`). Mobile form stacks naturally. Table horizontally scrollable on mobile. | Phase 5 |
+| 6 | TypeScript | **YES** | Project scaffolded with TypeScript from start. Zod schemas infer types. `Lead` interface defined in `lib/types.ts`. | Phase 1 |
+| 7 | Form validation feedback | **YES** | Antd Form built-in inline error messages per field + Zod schema for type-safe rules. Required, email format, URL format validations with real-time feedback. | Phase 3 |
+| 8 | System design document | **YES** | DESIGN.md — architecture diagram, data flow, API design, trade-offs table, scaling considerations. | Phase 6 |
 
 ### Tech Requirements → Implementation Mapping
 

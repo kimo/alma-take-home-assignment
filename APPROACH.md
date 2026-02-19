@@ -23,7 +23,7 @@
 | # | Bonus | Decision | Implementation | Phase |
 |---|-------|----------|---------------|-------|
 | 1 | Next.js API routes | **YES** | 3 real endpoints: `POST /api/leads`, `GET /api/leads`, `PATCH /api/leads/[id]`. In-memory store — fully functional, not mocked. | Phase 2 |
-| 2 | JsonForms (config-driven) | **IF TIME — Phase 5.5** | Build form with Antd first (safe). If time remains, refactor to JsonForms with custom Antd renderers (~2 hrs). Form looks identical — difference is config-driven architecture under the hood. | Phase 5.5 (optional) |
+| 2 | JsonForms (config-driven) | **YES — Phase 5.5** | Config-driven architecture: JSON Schema (draft-07) stored server-side, editable via Settings page, public form fetches schema dynamically. Demonstrates the concept without `@jsonforms/core` overhead. | Phase 5.5 |
 | 3 | State management (Redux) | **SKIP** | Antd Table/Form manage UI state internally. Server state is simple fetch + useState. Redux adds boilerplate with no benefit at this scale. Documented as conscious trade-off in DESIGN.md — shows architectural judgment. | — |
 | 4 | Unit tests | **YES** | 12 test cases: form rendering, validation (empty/email/URL), submit flow, table rendering, filters, status update, all 3 API endpoints. Jest + React Testing Library. | Phase 6 |
 | 5 | Responsive design | **YES** | Antd responsive components + Tailwind breakpoint utilities (`md:`, `lg:`). Mobile form stacks naturally. Table horizontally scrollable on mobile. | Phase 5 |
@@ -40,7 +40,7 @@
 | Mock authentication | NextAuth.js credentials provider. Hardcoded login (admin@tryalma.ai / admin). `/dashboard` protected via session check. Real auth pattern, mock credentials. | Phase 4 |
 | File upload for resume/CV | Antd `<Upload>` component (drag-and-drop + file list UI) → Next.js API route handles multipart FormData → saves to local `uploads/` directory. | Phase 2 (API) + Phase 3 (UI) |
 | Form validation | Antd Form built-in rules (required, email format, URL format) + Zod schema for type-safe validation. Inline error messages per field. | Phase 3 |
-| Style with CSS or CSS-in-JS | AntD (CSS-in-JS via design tokens) + Tailwind CSS for layout. `ConfigProvider` customizes theme to match mock's minimal aesthetic. | Phase 1 (setup) + Phase 3/4 |
+| Style with CSS or CSS-in-JS | AntD CSS-in-JS via `@ant-design/cssinjs` design tokens + Tailwind CSS for layout. Dashboard light/dark theme toggle demonstrates runtime style generation — swapping token objects regenerates all component styles dynamically. | Phase 1 (setup) + Phase 3/4/5 |
 | Match the mocks closely | Highest priority. Dedicated polish pass in Phase 5 for spacing, fonts, colors. Seed data matches mock exactly. | Phase 5 |
 
 ---
@@ -216,38 +216,40 @@ alma-take-home-assignment/
 │   ├── app/
 │   │   ├── page.tsx                    # Public lead form
 │   │   ├── thank-you/page.tsx          # Confirmation after submit
-│   │   ├── login/
-│   │   │   └── page.tsx               # Login page (admin@tryalma.ai / admin)
+│   │   ├── login/page.tsx              # Login page (admin@tryalma.ai / admin)
 │   │   ├── dashboard/
-│   │   │   ├── layout.tsx              # Sidebar + auth guard
-│   │   │   └── page.tsx               # Leads table
+│   │   │   ├── layout.tsx              # Sidebar + auth guard + theme provider
+│   │   │   ├── page.tsx                # Leads table
+│   │   │   └── settings/page.tsx       # Form config (JSON Schema editor)
 │   │   ├── api/
-│   │   │   ├── leads/
-│   │   │   │   ├── route.ts           # GET (list) + POST (create)
-│   │   │   │   └── [id]/route.ts      # PATCH (update status)
-│   │   │   └── auth/[...nextauth]/
-│   │   │       └── route.ts           # NextAuth handler
+│   │   │   ├── leads/route.ts          # GET (auth) + POST (public)
+│   │   │   ├── leads/[id]/route.ts     # PATCH (auth)
+│   │   │   ├── form-config/route.ts    # GET (public) + PUT (auth)
+│   │   │   └── auth/[...nextauth]/     # NextAuth handler
 │   │   └── layout.tsx                  # Root layout
 │   ├── components/
-│   │   ├── LeadForm.tsx               # Public form component
-│   │   ├── LeadsTable.tsx             # Admin table component
-│   │   ├── Sidebar.tsx                # Dashboard sidebar
-│   │   ├── Pagination.tsx             # Table pagination
-│   │   └── ui/                        # Small reusable UI pieces
+│   │   ├── LeadForm.tsx                # Public form (3 sections + upload)
+│   │   ├── LeadsTable.tsx              # Dashboard table + mobile cards
+│   │   └── Sidebar.tsx                 # Dashboard sidebar + theme toggle
 │   ├── lib/
-│   │   ├── store.ts                   # In-memory leads store
-│   │   ├── schema.ts                  # Zod validation schemas
-│   │   ├── types.ts                   # TypeScript interfaces
-│   │   └── seed.ts                    # Seed data matching mock
+│   │   ├── types.ts                    # TypeScript interfaces
+│   │   ├── schema.ts                   # Zod validation schemas
+│   │   ├── store.ts                    # In-memory leads store
+│   │   ├── seed.ts                     # 20 seed leads
+│   │   ├── auth.ts                     # NextAuth config
+│   │   ├── theme.ts                    # AntD theme tokens (light + dark)
+│   │   └── formConfigStore.ts          # JSON Schema config store
 │   └── __tests__/
-│       ├── LeadForm.test.tsx
-│       └── LeadsTable.test.tsx
-├── public/
-│   └── file-uploads/                  # Uploaded resumes (gitignored)
-├── APPROACH.md                        # This file — full approach notes
-├── DESIGN.md                          # System design document (for submission)
-├── README.md                          # How to run locally
-├── .env.example                       # Environment variables template
+│       ├── api/
+│       │   ├── leads.test.ts           # Store CRUD tests
+│       │   ├── schema.test.ts          # Validation tests
+│       │   └── formConfig.test.ts      # Form config store tests
+│       └── components/
+│           ├── LeadForm.test.tsx        # Form rendering tests
+│           └── LeadsTable.test.tsx      # Table rendering tests
+├── APPROACH.md                         # This file — full approach notes
+├── DESIGN.md                           # System design document (for submission)
+├── README.md                           # How to run locally
 └── package.json
 ```
 
@@ -335,23 +337,17 @@ Pre-populate with the 8 leads from the mock (Jorge Ruiz, Bahar Zamir, etc.) so t
 - [ ] Error handling
 - [ ] Match mock styling precisely (spacing, fonts, colors)
 
-### Phase 5.5: JsonForms Refactor — OPTIONAL (~2 hr, only if ahead of schedule)
-**Strategy:** Form already works with Antd. This phase refactors the form definition from JSX to JSON config while keeping the exact same UI.
-- [ ] Install `@jsonforms/core`, `@jsonforms/react`
-- [ ] Extract lead form data shape into JSON Schema (`schemas/lead-form.schema.json`)
-- [ ] Define UI Schema for section layout (`schemas/lead-form.uischema.json`)
-- [ ] Write custom Antd renderers (wrap existing Antd components):
-  - [ ] TextInputRenderer → `<Input>`
-  - [ ] EmailRenderer → `<Input>` with email rules
-  - [ ] SelectRenderer → `<Select>` (country dropdown)
-  - [ ] CheckboxGroupRenderer → `<Checkbox.Group>` (visa interests)
-  - [ ] FileUploadRenderer → `<Upload>` (resume)
-  - [ ] TextAreaRenderer → `<Input.TextArea>` (help message)
-- [ ] Register renderers with JsonForms `<JsonForms>` component
-- [ ] Verify form looks identical to Antd-only version
-- [ ] Add note in DESIGN.md explaining config-driven architecture value for Alma's domain
+### Phase 5.5: Config-Driven Form (JsonForms Bonus) (~1 hr)
+**Strategy:** Rather than installing `@jsonforms/core` and building custom AntD renderers (2+ hours, zero visual change), demonstrate the config-driven concept with a lightweight approach: the lead form's structure is defined as a JSON Schema (draft-07), stored server-side, and editable via the Settings page.
 
-**Why this order works:** If anything goes wrong, revert to the working Antd form. Zero risk to the submission.
+- [x] In-memory JSON Schema config store (`src/lib/formConfigStore.ts`) — builds default schema from existing `COUNTRIES` and `VISA_OPTIONS` arrays
+- [x] API routes (`src/app/api/form-config/route.ts`) — `GET` (public) returns active schema, `PUT` (auth required) validates and updates
+- [x] Settings page (`src/app/dashboard/settings/page.tsx`) — JSON Schema editor with live editing, validation, and save
+- [x] LeadForm dynamic country list — fetches `/api/form-config` on mount, extracts `country.enum`, falls back to hardcoded `COUNTRIES`
+- [x] Tests (`src/__tests__/api/formConfig.test.ts`) — 6 tests covering CRUD, cloning, and schema structure
+- [x] Updated LeadForm tests — added `global.fetch` mock for the config fetch on mount
+
+**Why this approach over full JsonForms:** Installing `@jsonforms/core` + writing 6 custom AntD renderers = 2+ hours of work with zero visual change. The lighter approach demonstrates the same config-driven architecture (schema → API → dynamic form) without the library overhead. Documented in DESIGN.md as a conscious trade-off.
 
 ### Phase 6: Documentation + Tests (~1 hr)
 - [ ] Unit tests for form validation + leads table
@@ -456,13 +452,16 @@ npm run dev
 ### Test File Structure
 ```
 src/__tests__/
-├── components/
-│   ├── LeadForm.test.tsx         # Form rendering + validation
-│   └── LeadsTable.test.tsx       # Table rendering + filters + actions
-└── api/
-    ├── leads.test.ts             # POST + GET endpoints
-    └── leads-id.test.ts          # PATCH endpoint
+├── api/
+│   ├── leads.test.ts             # Store CRUD operations + seed data (11 tests)
+│   ├── schema.test.ts            # Zod validation for leads + status (7 tests)
+│   └── formConfig.test.ts        # JSON Schema config store (6 tests)
+└── components/
+    ├── LeadForm.test.tsx          # Form rendering + fields + upload (7 tests)
+    └── LeadsTable.test.tsx        # Table rendering + fetch + filters (9 tests)
 ```
+
+**Total: 40 tests across 5 suites.**
 
 ### Running Tests
 ```bash
@@ -495,7 +494,9 @@ npm test -- --watch       # watch mode during development
 - [ ] Pagination works (8 per page)
 - [ ] File upload accepts .pdf/.doc/.docx
 - [ ] Unauthenticated access to `/dashboard` redirects to login
-- [ ] `npm test` passes with no failures
+- [ ] Settings page at `/dashboard/settings` — JSON Schema editor loads, saves, updates country dropdown
+- [ ] Light/dark theme toggle works in dashboard sidebar
+- [ ] `npm test` passes with no failures (40 tests across 5 suites)
 - [ ] `npm run build` succeeds with no errors
 
 **Visual Verification (vs mocks):**
@@ -541,11 +542,11 @@ npm test -- --watch       # watch mode during development
 | 3. Public Form | 1.5 hr | 2:15 | Form submits, validation works, thank-you page |
 | 4. Dashboard | 1.5 hr | 3:45 | Table, search, filter, pagination, status button, detail view |
 | 5. Polish | 1 hr | 4:45 | Pixel-perfect match to mocks, responsive |
-| 5.5. JsonForms | 2 hr | 6:45 | OPTIONAL — only if ahead of schedule |
-| 6. Tests + Docs | 1 hr | 5:45 (or 7:45) | Tests pass, README, DESIGN.md complete |
-| 7. Submit | 15 min | 6:00 (or 8:00) | Public repo, email sent |
+| 5.5. Config-Driven Form | 1 hr | 5:45 | JSON Schema config store, Settings editor, dynamic country list |
+| 6. Tests + Docs | 1 hr | 6:45 | 40 tests pass, README, DESIGN.md complete |
+| 7. Submit | 15 min | 7:00 | Public repo, email sent |
 
-**Total core:** ~6 hours. **With JsonForms:** ~8 hours. Plenty of buffer within 24hr deadline.
+**Total:** ~7 hours including config-driven form bonus. Plenty of buffer within 24hr deadline.
 
 **Risk mitigation:** If any phase takes longer than estimated, skip Phase 5.5 (JsonForms) first, then reduce test coverage. Core functionality + mock match + documentation are non-negotiable.
 
@@ -553,17 +554,45 @@ npm test -- --watch       # watch mode during development
 
 ## 8. Progress Log
 
-_Will be updated as we build._
-
-### Planning Phase (Pre-implementation)
-- Analyzed assignment requirements thoroughly
-- Analyzed both mockups in detail (field-by-field)
+### Planning Phase
+- Analyzed assignment requirements and both mockups in detail (field-by-field)
 - Created field-to-requirement mapping for both screens
-- Identified gap: "all information" requirement vs 4-column mock → resolved with expandable row/drawer
-- Made architecture decisions (AntD, Tailwind, NextAuth, Zod, in-memory store)
-- Evaluated and documented trade-offs (Redux: skip, JsonForms: optional Phase 5.5, styled-components: redundant with antd tokens)
-- Defined development workflow, testing strategy, and release plan
-- **Status: PLANNING COMPLETE — ready to implement on user's go**
+- Identified gap: "all information" requirement vs 4-column mock → resolved with expandable rows
+- Made architecture decisions and documented trade-offs
+
+### Phase 1–4: Core Implementation
+- Project scaffolded with Next.js 15, AntD, Tailwind CSS, TypeScript
+- 3 API routes: `POST /api/leads`, `GET /api/leads`, `PATCH /api/leads/[id]`
+- In-memory store with 20 seed leads
+- Public lead form with 3 sections, Zod validation, file upload, thank-you page
+- Dashboard with table, search, status filter, pagination, expandable row details
+- NextAuth credentials provider, auth guard on dashboard
+- Sidebar with navigation and user avatar
+- Mobile-responsive card view for small screens
+
+### Phase 5: Polish
+- Color-coded status badges (yellow for Pending, green for Reached Out)
+- Light/dark theme toggle via AntD `ConfigProvider` + `@ant-design/cssinjs` — demonstrates CSS-in-JS
+- Context-aware `message` API via AntD `App.useApp()` hook (respects dynamic theme)
+
+### Phase 5.5: Config-Driven Form (JsonForms Bonus)
+- JSON Schema (draft-07) config store with default schema built from existing constants
+- `GET /api/form-config` (public) + `PUT /api/form-config` (auth) API routes
+- Settings page: JSON Schema editor with live editing, validation, save
+- Public form dynamically fetches country dropdown from config (falls back to hardcoded list)
+- 6 new tests for config store
+
+### Phase 6: Tests + Documentation
+- 40 tests across 5 suites — all passing
+- Store CRUD (11), Zod validation (7), Form config (6), LeadForm (7), LeadsTable (9)
+- DESIGN.md: architecture diagrams, data flow, trade-offs, scaling considerations
+- README.md: quick start, routes, API endpoints, test instructions, project structure
+- APPROACH.md: full planning process and implementation log
+
+### Final State
+- `npm test` — 40 tests pass
+- `npm run build` — clean build, all routes registered
+- `npm run lint` — no errors
 
 ---
 
@@ -696,3 +725,5 @@ sequenceDiagram
 | File upload | Antd Upload + local fs | Custom dropzone + S3 | Antd Upload gives drag-and-drop + file list UI. Local fs for demo scope. |
 | Testing | Component + API tests | E2E (Cypress/Playwright) | Component tests give fast feedback. E2E adds setup overhead for a 24hr take-home with 2 screens. |
 | Detail view | Expandable rows | Separate detail page | Keeps user in table context, less navigation. Satisfies "all information" requirement without leaving the mock's layout. |
+| CSS-in-JS | AntD design tokens | styled-components / CSS modules | AntD `ConfigProvider` + `@ant-design/cssinjs` generates component styles at runtime from token objects. Dashboard light/dark toggle demonstrates this: flipping React state swaps the token object and cssinjs regenerates styles dynamically. |
+| Config-driven forms | JSON Schema + Settings editor | Full JsonForms library | Form structure defined as JSON Schema, stored server-side, editable via Settings. Public form fetches schema for country dropdown. Same concept as JsonForms — lighter footprint, no custom renderers needed. |

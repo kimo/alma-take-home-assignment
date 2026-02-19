@@ -3,7 +3,7 @@
 import { useContext, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession, SessionProvider } from "next-auth/react";
-import { ConfigProvider, Spin } from "antd";
+import { App, ConfigProvider, Spin } from "antd";
 import { lightTheme, darkTheme, ThemeContext } from "@/lib/theme";
 import Sidebar from "@/components/Sidebar";
 
@@ -56,7 +56,9 @@ export default function DashboardLayout({
         value={{ isDark, toggleTheme: () => setIsDark((d) => !d) }}
       >
         <ConfigProvider theme={isDark ? darkTheme : lightTheme}>
-          <DashboardGuard>{children}</DashboardGuard>
+          <App>
+            <DashboardGuard>{children}</DashboardGuard>
+          </App>
         </ConfigProvider>
       </ThemeContext.Provider>
     </SessionProvider>

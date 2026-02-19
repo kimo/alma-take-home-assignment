@@ -192,6 +192,7 @@ The dashboard layout checks for an active session and redirects unauthenticated 
 | Testing | Unit + integration | E2E (Cypress/Playwright) | Component and store tests give fast feedback with minimal setup. E2E adds overhead disproportionate to a 2-screen demo app. |
 | File upload | Antd Upload + local fs | S3 / custom dropzone | Antd Upload provides drag-and-drop UI. Local filesystem for demo scope. |
 | CSS-in-JS | AntD design tokens | styled-components / CSS modules | AntD's `ConfigProvider` accepts JavaScript theme token objects and generates all component styles at runtime via `@ant-design/cssinjs`. The dashboard light/dark toggle demonstrates this: flipping a React state swaps the token object, and cssinjs regenerates every component's styles dynamically — no static CSS files involved. |
+| Config-driven forms | JSON Schema + Settings editor | Full JsonForms library | The lead form's structure is defined as a JSON Schema (draft-07), stored server-side, and editable via the Settings page. The public form fetches the active schema and uses it to populate the country dropdown. This demonstrates config-driven architecture without installing `@jsonforms/core` or building custom renderers — same concept, lighter footprint. |
 
 ---
 
@@ -209,3 +210,4 @@ If this were a production system, the following changes would apply:
 | API protection | Session check | Rate limiting, CORS, input sanitization |
 | Deployment | `npm run dev` | Vercel / Docker with CI/CD |
 | Monitoring | Console logs | Structured logging, error tracking (Sentry) |
+| Form config editor | Inline textarea | Sandboxed iframe editor — the JSON Schema editor accepts arbitrary input from admins, which creates an XSS surface. In production, serve the editor from a separate origin via an iframe to isolate it from the main application's session and DOM. |

@@ -21,6 +21,7 @@ Open [http://localhost:3000](http://localhost:3000) — no `.env` setup required
 | `/thank-you` | Confirmation page after form submission |
 | `/login` | Admin login page |
 | `/dashboard` | Authenticated leads management table |
+| `/dashboard/settings` | Form configuration (JSON Schema editor) |
 
 ### Login Credentials
 
@@ -46,6 +47,8 @@ Password: admin
 POST   /api/leads          Create a new lead (multipart FormData)
 GET    /api/leads           List leads (?page=1&limit=8&search=&status=)
 PATCH  /api/leads/[id]      Update lead status (PENDING → REACHED_OUT)
+GET    /api/form-config     Get current form JSON Schema (public)
+PUT    /api/form-config     Update form JSON Schema (auth required)
 ```
 
 ## Scripts
@@ -54,7 +57,7 @@ PATCH  /api/leads/[id]      Update lead status (PENDING → REACHED_OUT)
 npm run dev       # Development server
 npm run build     # Production build
 npm run lint      # ESLint
-npm test          # Run all tests (34 tests across 4 suites)
+npm test          # Run all tests (40 tests across 5 suites)
 ```
 
 ### Running Tests
@@ -69,6 +72,7 @@ npm test -- --watch         # Watch mode for development
 Tests cover:
 - **Store** — CRUD operations, sorting, seed data integrity (11 tests)
 - **Schema** — Zod validation for lead form and status update (7 tests)
+- **Form Config** — JSON Schema store, cloning, updates (6 tests)
 - **LeadForm** — Form rendering, fields, checkboxes, upload area (7 tests)
 - **LeadsTable** — Table rendering, fetch, filters, pagination (9 tests)
 
@@ -83,10 +87,11 @@ src/
 │   ├── dashboard/
 │   │   ├── layout.tsx              # Sidebar + auth guard + theme provider
 │   │   ├── page.tsx                # Leads table
-│   │   └── settings/page.tsx       # Settings placeholder
+│   │   └── settings/page.tsx       # Form config (JSON Schema editor)
 │   └── api/
 │       ├── leads/route.ts          # GET (auth) + POST (public)
 │       ├── leads/[id]/route.ts     # PATCH (auth)
+│       ├── form-config/route.ts    # GET (public) + PUT (auth)
 │       └── auth/[...nextauth]/     # NextAuth handler
 ├── components/
 │   ├── LeadForm.tsx                # Public form (3 sections + upload)
@@ -98,11 +103,13 @@ src/
 │   ├── store.ts                    # In-memory data store
 │   ├── seed.ts                     # 20 seed leads
 │   ├── auth.ts                     # NextAuth config
-│   └── theme.ts                    # AntD theme tokens (light + dark)
+│   ├── theme.ts                    # AntD theme tokens (light + dark)
+│   └── formConfigStore.ts         # JSON Schema config store
 └── __tests__/
     ├── api/
     │   ├── leads.test.ts           # Store CRUD tests
-    │   └── schema.test.ts          # Validation tests
+    │   ├── schema.test.ts          # Validation tests
+    │   └── formConfig.test.ts      # Form config store tests
     └── components/
         ├── LeadForm.test.tsx       # Form rendering tests
         └── LeadsTable.test.tsx     # Table rendering tests

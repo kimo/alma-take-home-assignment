@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useContext } from "react";
-import { Table, Input, Select, Button, Spin, message } from "antd";
+import { Table, Input, Select, Button, Spin, App } from "antd";
 import { SearchOutlined } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
 import type { Lead, LeadsResponse } from "@/lib/types";
@@ -26,6 +26,7 @@ export default function LeadsTable() {
   const [loading, setLoading] = useState(false);
   const [expandedRowKeys, setExpandedRowKeys] = useState<string[]>([]);
   const { isDark } = useContext(ThemeContext);
+  const { message } = App.useApp();
 
   const fetchLeads = useCallback(async () => {
     setLoading(true);

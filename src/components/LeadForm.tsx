@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   Form,
@@ -22,7 +22,24 @@ const { Dragger } = Upload;
 export default function LeadForm() {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
+  const [countries, setCountries] = useState<string[]>([...COUNTRIES]);
   const router = useRouter();
+
+  // Fetch config-driven country list (falls back to hardcoded COUNTRIES)
+  useEffect(() => {
+    fetch("/api/form-config")
+      .then((res) => {
+        if (!res.ok) throw new Error("fetch failed");
+        return res.json();
+      })
+      .then((schema) => {
+        const countryEnum = schema?.properties?.country?.enum;
+        if (Array.isArray(countryEnum) && countryEnum.length > 0) {
+          setCountries(countryEnum);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const onFinish = async (values: Record<string, unknown>) => {
     // Validate with Zod
@@ -148,7 +165,7 @@ export default function LeadForm() {
             filterOption={(input, option) =>
               (option?.label ?? "").toLowerCase().includes(input.toLowerCase())
             }
-            options={COUNTRIES.map((c) => ({ value: c, label: c }))}
+            options={countries.map((c) => ({ value: c, label: c }))}
           />
         </Form.Item>
 

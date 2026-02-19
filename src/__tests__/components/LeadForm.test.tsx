@@ -6,6 +6,24 @@ jest.mock("next/navigation", () => ({
   useRouter: () => ({ push: jest.fn() }),
 }));
 
+// Mock fetch for form config (LeadForm fetches /api/form-config on mount)
+beforeEach(() => {
+  global.fetch = jest.fn().mockResolvedValue({
+    ok: true,
+    json: async () => ({
+      properties: {
+        country: {
+          enum: ["United States", "Canada", "Mexico"],
+        },
+      },
+    }),
+  });
+});
+
+afterEach(() => {
+  jest.resetAllMocks();
+});
+
 describe("LeadForm", () => {
   it("renders all form sections", () => {
     render(<LeadForm />);

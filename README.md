@@ -131,3 +131,7 @@ src/
 See [DESIGN.md](DESIGN.md) for architecture diagrams, data flow, and trade-off analysis.
 
 See [APPROACH.md](APPROACH.md) for the full planning process, number of iterations, mock analysis, and implementation log.
+
+See [DELIVERY_CHECKLIST.md](DELIVERY_CHECKLIST.md) for a full requirements checklist with status tracking.
+
+

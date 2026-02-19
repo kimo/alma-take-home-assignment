@@ -197,7 +197,7 @@ The dashboard supports light/dark theme toggling via a switch in the sidebar. Th
 
 ---
 
-## Design Trade-offs
+## Design Decisions
 
 | Decision | Chose | Over | Rationale |
 |----------|-------|------|-----------|

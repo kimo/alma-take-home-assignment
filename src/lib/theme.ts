@@ -1,6 +1,8 @@
 import type { ThemeConfig } from "antd";
+import { theme as antdTheme } from "antd";
+import { createContext } from "react";
 
-export const theme: ThemeConfig = {
+export const lightTheme: ThemeConfig = {
   token: {
     colorPrimary: "#000000",
     borderRadius: 4,
@@ -22,3 +24,26 @@ export const theme: ThemeConfig = {
     },
   },
 };
+
+export const darkTheme: ThemeConfig = {
+  algorithm: antdTheme.darkAlgorithm,
+  token: {
+    colorPrimary: "#1677ff",
+    borderRadius: 4,
+    fontFamily: "inherit",
+  },
+  components: {
+    Button: {
+      algorithm: true,
+    },
+  },
+};
+
+// Default theme for non-dashboard pages (public form, login, thank-you)
+export const theme = lightTheme;
+
+// Dashboard theme context for light/dark toggle
+export const ThemeContext = createContext({
+  isDark: false,
+  toggleTheme: () => {},
+});

@@ -34,7 +34,7 @@ Password: admin
 | Layer | Technology |
 |-------|-----------|
 | Framework | Next.js 15 (App Router, TypeScript) |
-| UI | Ant Design 5 + Tailwind CSS |
+| UI | AntD + Tailwind CSS |
 | Auth | NextAuth.js (credentials provider, JWT sessions) |
 | Validation | Zod schemas wired to Antd Form rules |
 | Storage | In-memory store (Map) with seed data |
@@ -54,8 +54,23 @@ PATCH  /api/leads/[id]      Update lead status (PENDING → REACHED_OUT)
 npm run dev       # Development server
 npm run build     # Production build
 npm run lint      # ESLint
-npm test          # Run tests (13 tests across 2 suites)
+npm test          # Run all tests (34 tests across 4 suites)
 ```
+
+### Running Tests
+
+```bash
+npm test                    # Run all tests
+npm test -- --verbose       # Verbose output with test names
+npm test -- --coverage      # Generate coverage report
+npm test -- --watch         # Watch mode for development
+```
+
+Tests cover:
+- **Store** — CRUD operations, sorting, seed data integrity (11 tests)
+- **Schema** — Zod validation for lead form and status update (7 tests)
+- **LeadForm** — Form rendering, fields, checkboxes, upload area (7 tests)
+- **LeadsTable** — Table rendering, fetch, filters, pagination (9 tests)
 
 ## Project Structure
 
@@ -66,27 +81,31 @@ src/
 │   ├── thank-you/page.tsx          # Confirmation page
 │   ├── login/page.tsx              # Login page
 │   ├── dashboard/
-│   │   ├── layout.tsx              # Sidebar + auth guard
-│   │   └── page.tsx                # Leads table
+│   │   ├── layout.tsx              # Sidebar + auth guard + theme provider
+│   │   ├── page.tsx                # Leads table
+│   │   └── settings/page.tsx       # Settings placeholder
 │   └── api/
-│       ├── leads/route.ts          # GET + POST
-│       ├── leads/[id]/route.ts     # PATCH
+│       ├── leads/route.ts          # GET (auth) + POST (public)
+│       ├── leads/[id]/route.ts     # PATCH (auth)
 │       └── auth/[...nextauth]/     # NextAuth handler
 ├── components/
 │   ├── LeadForm.tsx                # Public form (3 sections + upload)
-│   ├── LeadsTable.tsx              # Dashboard table
-│   └── Sidebar.tsx                 # Dashboard sidebar
+│   ├── LeadsTable.tsx              # Dashboard table + mobile cards
+│   └── Sidebar.tsx                 # Dashboard sidebar + theme toggle
 ├── lib/
 │   ├── types.ts                    # TypeScript interfaces
 │   ├── schema.ts                   # Zod validation schemas
 │   ├── store.ts                    # In-memory data store
-│   ├── seed.ts                     # 8 mock leads matching mocks
+│   ├── seed.ts                     # 20 seed leads
 │   ├── auth.ts                     # NextAuth config
-│   └── theme.ts                    # Antd theme tokens
+│   └── theme.ts                    # AntD theme tokens (light + dark)
 └── __tests__/
-    └── api/
-        ├── leads.test.ts           # Store CRUD tests
-        └── schema.test.ts          # Validation tests
+    ├── api/
+    │   ├── leads.test.ts           # Store CRUD tests
+    │   └── schema.test.ts          # Validation tests
+    └── components/
+        ├── LeadForm.test.tsx       # Form rendering tests
+        └── LeadsTable.test.tsx     # Table rendering tests
 ```
 
 ## Design Decisions

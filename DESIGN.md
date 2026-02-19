@@ -182,7 +182,7 @@ The dashboard layout checks for an active session and redirects unauthenticated 
 
 | Decision | Chose | Over | Rationale |
 |----------|-------|------|-----------|
-| UI Library | Ant Design 5 | Raw components / Tailwind-only | Table, Form, Upload components solve both screens out of the box. Built-in sorting, pagination, validation. Prior experience enables faster delivery. |
+| UI Library | AntD | Raw components / Tailwind-only | Table, Form, Upload components solve both screens out of the box. Built-in sorting, pagination, validation. Prior experience enables faster delivery. |
 | Styling | Antd tokens + Tailwind | styled-components | Antd `ConfigProvider` handles component theming. Tailwind handles layout and custom sections (hero). No redundancy. |
 | Storage | In-memory Map | SQLite / Prisma | Zero setup for reviewer. Sufficient for demo scope. |
 | State management | Antd internal + fetch | Redux | Antd Table and Form manage their own UI state. Server state is simple fetch + useState. Redux adds boilerplate with no benefit at this scale. |
@@ -191,6 +191,7 @@ The dashboard layout checks for an active session and redirects unauthenticated 
 | Auth | NextAuth credentials | Custom JWT | Real auth library with production patterns. Minimal code for mock credentials. |
 | Testing | Unit + integration | E2E (Cypress/Playwright) | Component and store tests give fast feedback with minimal setup. E2E adds overhead disproportionate to a 2-screen demo app. |
 | File upload | Antd Upload + local fs | S3 / custom dropzone | Antd Upload provides drag-and-drop UI. Local filesystem for demo scope. |
+| CSS-in-JS | AntD design tokens | styled-components / CSS modules | AntD's `ConfigProvider` accepts JavaScript theme token objects and generates all component styles at runtime via `@ant-design/cssinjs`. The dashboard light/dark toggle demonstrates this: flipping a React state swaps the token object, and cssinjs regenerates every component's styles dynamically — no static CSS files involved. |
 
 ---
 

@@ -40,7 +40,7 @@
 | Mock authentication | NextAuth.js credentials provider. Hardcoded login (admin@tryalma.ai / admin). `/dashboard` protected via session check. Real auth pattern, mock credentials. | Phase 4 |
 | File upload for resume/CV | Antd `<Upload>` component (drag-and-drop + file list UI) → Next.js API route handles multipart FormData → saves to local `uploads/` directory. | Phase 2 (API) + Phase 3 (UI) |
 | Form validation | Antd Form built-in rules (required, email format, URL format) + Zod schema for type-safe validation. Inline error messages per field. | Phase 3 |
-| Style with CSS or CSS-in-JS | Ant Design 5 (CSS-in-JS via design tokens) + Tailwind CSS for layout. `ConfigProvider` customizes theme to match mock's minimal aesthetic. | Phase 1 (setup) + Phase 3/4 |
+| Style with CSS or CSS-in-JS | AntD (CSS-in-JS via design tokens) + Tailwind CSS for layout. `ConfigProvider` customizes theme to match mock's minimal aesthetic. | Phase 1 (setup) + Phase 3/4 |
 | Match the mocks closely | Highest priority. Dedicated polish pass in Phase 5 for spacing, fonts, colors. Seed data matches mock exactly. | Phase 5 |
 
 ---
@@ -177,7 +177,7 @@ The mock only shows 4 columns (Name, Submitted, Status, Country), but the requir
 |-------|--------|-----|
 | Framework | Next.js 15 (App Router) | Required. App Router is current standard. |
 | Language | TypeScript | Bonus points + type safety |
-| UI Library | Ant Design 5 (antd) | Production-grade Table, Form, Upload components. Built-in sorting, pagination, validation. Design tokens for theme customization. Prior experience = faster delivery. |
+| UI Library | AntD | Production-grade Table, Form, Upload components. Built-in sorting, pagination, validation. Design tokens for theme customization. Prior experience = faster delivery. |
 | Styling | Ant Design tokens + Tailwind CSS (utility) | Antd ConfigProvider for component theming (black buttons, minimal borders). Tailwind for layout utilities and custom sections (hero, form sections) where antd components don't apply. |
 | Form handling | Ant Design Form + Zod | Antd Form has built-in validation UX, field-level error messages, and all input types needed (Input, Select, Checkbox.Group, Upload, TextArea). Zod for schema definition. |
 | API | Next.js API routes | Bonus points, keeps it self-contained |
@@ -188,12 +188,12 @@ The mock only shows 4 columns (Name, Submitted, Status, Country), but the requir
 
 ### Why these choices:
 
-**Ant Design 5 over raw Tailwind/styled-components:**
+**AntD over raw Tailwind/styled-components:**
 - `<Table>` component solves 60% of the dashboard: sorting, pagination, column config, search — all built-in and matching the mock's table pattern
 - `<Form>` component handles validation UX (error messages, required fields, field-level feedback) without manual wiring
 - `<Upload>` component provides file upload with progress and file list display
 - Design tokens via `ConfigProvider` allow customizing to match Alma's minimal aesthetic (black buttons, clean borders) without fighting the library
-- Prior hands-on experience with antd5 = faster delivery within 24hr deadline
+- Prior hands-on experience with AntD = faster delivery within 24hr deadline
 - Relevant to Alma's domain: immigration platforms need many form types at scale — a component library with built-in form patterns is the right production choice
 
 **Tailwind CSS as complement (not replacement):**
@@ -205,7 +205,7 @@ The mock only shows 4 columns (Name, Submitted, Status, Country), but the requir
 - **SQLite/Prisma** — overkill for a take-home, adds setup complexity for the reviewer
 - **Redux** — the assignment suggests it, but this app has simple server state. Antd Table + Form manage their own UI state internally. Server state is simple enough for fetch + useState. Would mention in design doc as a conscious trade-off.
 - **JsonForms** — config-driven form rendering. No official Antd renderer set — requires writing custom renderers mapping JsonForms controls to Antd components. Planned as optional Phase 5.5 refactor if time allows. In production, eliminates dev cycles for form changes (non-engineers edit JSON config instead of React code). Highly relevant for Alma's domain where different visa types need different forms and immigration law changes frequently.
-- **styled-components** — Antd5 already provides component-level theming via design tokens. Adding styled-components on top would be redundant. Tailwind handles the remaining layout needs.
+- **styled-components** — AntD already provides component-level theming via design tokens. Adding styled-components on top would be redundant. Tailwind handles the remaining layout needs.
 - **Raw Tailwind only** — would require building Table (sorting, pagination), Form (validation, error states), Upload (file handling) from scratch. Antd provides these production-ready.
 
 ### Project Structure
@@ -371,7 +371,7 @@ Pre-populate with the 8 leads from the mock (Jorge Ruiz, Bahar Zamir, etc.) so t
 ### Git Strategy
 - **Single branch:** `main` — no feature branches for a solo 24-hour sprint
 - **Frequent commits:** commit after each phase completion (verifiable progress)
-- **Commit message format:** `Phase X: description` (e.g., `Phase 1: project setup with antd5 + tailwind`)
+- **Commit message format:** `Phase X: description` (e.g., `Phase 1: project setup with AntD + tailwind`)
 - **No force pushes** — clean linear history
 
 ### Development Order & Dependencies
@@ -560,7 +560,7 @@ _Will be updated as we build._
 - Analyzed both mockups in detail (field-by-field)
 - Created field-to-requirement mapping for both screens
 - Identified gap: "all information" requirement vs 4-column mock → resolved with expandable row/drawer
-- Made architecture decisions (antd5, Tailwind, NextAuth, Zod, in-memory store)
+- Made architecture decisions (AntD, Tailwind, NextAuth, Zod, in-memory store)
 - Evaluated and documented trade-offs (Redux: skip, JsonForms: optional Phase 5.5, styled-components: redundant with antd tokens)
 - Defined development workflow, testing strategy, and release plan
 - **Status: PLANNING COMPLETE — ready to implement on user's go**
@@ -687,7 +687,7 @@ sequenceDiagram
 | Decision | Chose | Over | Why |
 |----------|-------|------|-----|
 | App Router | Next.js App Router | Pages Router | Modern standard, better server components |
-| UI Library | Ant Design 5 | Raw components | Production-grade Table, Form, Upload — solves both screens with built-in sorting, pagination, validation. Prior experience. Relevant to Alma's form-heavy domain. |
+| UI Library | AntD | Raw components | Production-grade Table, Form, Upload — solves both screens with built-in sorting, pagination, validation. Prior experience. Relevant to Alma's form-heavy domain. |
 | Styling | Antd tokens + Tailwind | styled-components / Tailwind-only | Antd tokens for component theming, Tailwind for layout and custom sections (hero). Best of both. |
 | Storage | In-memory Map | SQLite/Prisma | Zero setup for reviewer, sufficient for demo |
 | Auth | NextAuth credentials | Custom JWT | Real auth library, production pattern |

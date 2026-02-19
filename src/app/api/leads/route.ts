@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import { getAllLeads, createLead } from "@/lib/store";
 import { leadFormSchema } from "@/lib/schema";
 import { writeFile, mkdir } from "fs/promises";
@@ -6,6 +8,10 @@ import path from "path";
 
 // GET /api/leads — List leads with pagination, search, and status filter
 export async function GET(request: NextRequest) {
+  const session = await getServerSession(authOptions);
+  if (!session) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
   const { searchParams } = request.nextUrl;
   const page = parseInt(searchParams.get("page") || "1", 10);
   const limit = parseInt(searchParams.get("limit") || "8", 10);

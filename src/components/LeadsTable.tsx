@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useContext } from "react";
 import { Table, Input, Select, Button, Spin, message } from "antd";
 import { SearchOutlined } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
 import type { Lead, LeadsResponse } from "@/lib/types";
+import { ThemeContext } from "@/lib/theme";
 
 const formatDate = (date: string) =>
   new Date(date).toLocaleString("en-US", {
@@ -24,6 +25,7 @@ export default function LeadsTable() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [loading, setLoading] = useState(false);
   const [expandedRowKeys, setExpandedRowKeys] = useState<string[]>([]);
+  const { isDark } = useContext(ThemeContext);
 
   const fetchLeads = useCallback(async () => {
     setLoading(true);
@@ -166,7 +168,7 @@ export default function LeadsTable() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Leads</h1>
+      <h1 className={`text-2xl font-bold mb-6 ${isDark ? "text-gray-100" : "text-gray-900"}`}>Leads</h1>
 
       {/* Toolbar */}
       <div className="flex gap-3 mb-4">
@@ -212,17 +214,17 @@ export default function LeadsTable() {
                 return (
                   <div
                     key={lead.id}
-                    className="bg-white rounded-lg border border-gray-200 p-4"
+                    className={`rounded-lg border p-4 ${isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"}`}
                     onClick={() =>
                       setExpandedRowKeys(isExpanded ? [] : [lead.id])
                     }
                   >
                     <div className="flex items-start justify-between">
                       <div>
-                        <div className="font-medium text-gray-900">
+                        <div className={`font-medium ${isDark ? "text-gray-100" : "text-gray-900"}`}>
                           {lead.firstName} {lead.lastName}
                         </div>
-                        <div className="text-sm text-gray-500 mt-0.5">
+                        <div className={`text-sm mt-0.5 ${isDark ? "text-gray-400" : "text-gray-500"}`}>
                           {lead.country}
                         </div>
                       </div>
@@ -353,7 +355,6 @@ export default function LeadsTable() {
             total,
             onChange: setPage,
             showSizeChanger: false,
-            placement: "end",
           }}
         />
       </div>

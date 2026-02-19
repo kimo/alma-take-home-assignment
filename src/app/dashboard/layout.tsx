@@ -1,16 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession, SessionProvider } from "next-auth/react";
 import { ConfigProvider, Spin } from "antd";
-import { theme } from "@/lib/theme";
+import { lightTheme, darkTheme, ThemeContext } from "@/lib/theme";
 import Sidebar from "@/components/Sidebar";
 
 function DashboardGuard({ children }: { children: React.ReactNode }) {
   const { status } = useSession();
   const router = useRouter();
   const [checked, setChecked] = useState(false);
+  const { isDark } = useContext(ThemeContext);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -31,7 +32,13 @@ function DashboardGuard({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex h-screen overflow-hidden">
       <Sidebar />
-      <main className="flex-1 bg-gray-50 p-4 pt-16 lg:p-8 overflow-auto">{children}</main>
+      <main
+        className={`flex-1 p-4 pt-16 lg:p-8 overflow-auto transition-colors ${
+          isDark ? "bg-gray-900" : "bg-gray-50"
+        }`}
+      >
+        {children}
+      </main>
     </div>
   );
 }
@@ -41,11 +48,17 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const [isDark, setIsDark] = useState(false);
+
   return (
     <SessionProvider>
-      <ConfigProvider theme={theme}>
-        <DashboardGuard>{children}</DashboardGuard>
-      </ConfigProvider>
+      <ThemeContext.Provider
+        value={{ isDark, toggleTheme: () => setIsDark((d) => !d) }}
+      >
+        <ConfigProvider theme={isDark ? darkTheme : lightTheme}>
+          <DashboardGuard>{children}</DashboardGuard>
+        </ConfigProvider>
+      </ThemeContext.Provider>
     </SessionProvider>
   );
 }

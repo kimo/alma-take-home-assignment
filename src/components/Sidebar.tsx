@@ -3,11 +3,14 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { TeamOutlined, SettingOutlined, MenuOutlined, CloseOutlined } from "@ant-design/icons";
-import { useState } from "react";
+import { useState, useContext } from "react";
+import { Switch } from "antd";
+import { ThemeContext } from "@/lib/theme";
 
 export default function Sidebar() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const { isDark, toggleTheme } = useContext(ThemeContext);
 
   const navItems = [
     { href: "/dashboard", label: "Leads", icon: <TeamOutlined /> },
@@ -48,6 +51,15 @@ export default function Sidebar() {
           );
         })}
       </nav>
+
+      <div className="px-5 py-3 border-t border-black/10">
+        <div className="flex items-center gap-2">
+          <Switch size="small" checked={isDark} onChange={toggleTheme} />
+          <span className="text-xs text-gray-600">
+            {isDark ? "Dark" : "Light"}
+          </span>
+        </div>
+      </div>
 
       <div className="px-5 py-4 border-t border-black/10">
         <div className="flex items-center gap-3">

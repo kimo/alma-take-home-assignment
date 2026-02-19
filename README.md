@@ -11,7 +11,18 @@ npm install
 npm run dev
 ```
 
+### Customer Site
 Open [http://localhost:3000](http://localhost:3000) — no `.env` setup required.
+
+
+### Admin Site
+
+Log in at [http://localhost:3000/login](http://localhost:3000/login) to access the dashboard.
+
+```
+Email:    admin@tryalma.ai
+Password: admin
+```
 
 ## Pages
 
@@ -23,13 +34,6 @@ Open [http://localhost:3000](http://localhost:3000) — no `.env` setup required
 | `/dashboard` | Authenticated leads management table |
 | `/dashboard/settings` | Form configuration (JSON Schema editor) |
 
-### Login Credentials
-
-```
-Email:    admin@tryalma.ai
-Password: admin
-```
-
 ## Tech Stack
 
 | Layer | Technology |
@@ -38,6 +42,7 @@ Password: admin
 | UI | AntD + Tailwind CSS |
 | Client State | Redux Toolkit (theme toggle) |
 | Server State | TanStack React Query (leads, form config) |
+| Config-Driven Forms | JSON Schema (draft-07) — Settings editor + dynamic form |
 | Auth | NextAuth.js (credentials provider, JWT sessions) |
 | Validation | Zod schemas wired to Antd Form rules |
 | Storage | In-memory store (Map) with seed data |
@@ -125,4 +130,4 @@ src/
 
 See [DESIGN.md](DESIGN.md) for architecture diagrams, data flow, and trade-off analysis.
 
-See [APPROACH.md](APPROACH.md) for the full planning process, mock analysis, and implementation log.
+See [APPROACH.md](APPROACH.md) for the full planning process, number of iterations, mock analysis, and implementation log.

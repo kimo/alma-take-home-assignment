@@ -80,11 +80,10 @@ function SchemaEditor({ initialSchema }: { initialSchema: Record<string, unknown
         <p
           className={`mb-4 text-sm ${isDark ? "text-gray-400" : "text-gray-600"}`}
         >
-          Edit the JSON Schema below to configure the public lead form.{" "}
-          <span className="text-amber-600 font-medium">
-            Currently, only the <code className="text-xs bg-amber-50 px-1 rounded border border-amber-200">country.enum</code> array
-            is wired to the live form.
-          </span>
+          Edit the JSON Schema below to configure the public lead form.
+        </p>
+        <p className={`mb-4 text-sm px-3 py-2 rounded-md font-medium ${isDark ? "bg-amber-900/20 border border-amber-700 text-amber-200" : "bg-amber-50 border border-amber-200 text-amber-800"}`}>
+          Currently, only the <code className={`text-xs px-1 rounded ${isDark ? "bg-amber-900/30" : "bg-amber-100"}`}>country.enum</code> array is wired to the live form. The schema is <span className="text-red-500 font-bold">NOT</span> validated on save, so make changes consciously. When you save, the form will immediately change for the next user.
         </p>
 
         <TextArea

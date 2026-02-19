@@ -205,7 +205,7 @@ The mock only shows 4 columns (Name, Submitted, Status, Country), but the requir
 - Co-exists cleanly with antd via `tailwind-antd` prefix config to avoid class conflicts
 
 ### Why NOT these alternatives:
-- **SQLite/Prisma** — overkill for a take-home, adds setup complexity for the reviewer
+- **SQLite/Prisma** — overkill for a take-home, adds setup complexity
 - **JsonForms** — config-driven form rendering. No official Antd renderer set — requires writing custom renderers mapping JsonForms controls to Antd components. Planned as optional Phase 5.5 refactor if time allows. In production, eliminates dev cycles for form changes (non-engineers edit JSON config instead of React code). Highly relevant for Alma's domain where different visa types need different forms and immigration law changes frequently.
 - **styled-components** — AntD already provides component-level theming via design tokens. Adding styled-components on top would be redundant. Tailwind handles the remaining layout needs.
 - **Raw Tailwind only** — would require building Table (sorting, pagination), Form (validation, error states), Upload (file handling) from scratch. Antd provides these production-ready.
@@ -400,7 +400,7 @@ Phase 1 (Setup) → Phase 2 (API) → Phase 3 (Form) → Phase 4 (Dashboard)
 - Manual verification after each phase before committing
 
 ### Environment Variables
-- **Zero-config approach:** NextAuth secret has a hardcoded fallback in code (`"alma-take-home-demo-secret"`), so the reviewer never needs to touch env files
+- **Zero-config approach:** NextAuth secret has a hardcoded fallback in code (`"alma-take-home-demo-secret"`), so no `.env` setup is needed
 - `.env.example` shipped for documentation only — not required to run
 - `NEXTAUTH_URL` defaults to `http://localhost:3000` in dev mode (Next.js auto-detects)
 
@@ -409,7 +409,7 @@ Phase 1 (Setup) → Phase 2 (API) → Phase 3 (Form) → Phase 4 (Dashboard)
 secret: process.env.NEXTAUTH_SECRET || "alma-take-home-demo-secret"
 ```
 
-### Reviewer Experience
+### Quick Start
 ```bash
 git clone https://github.com/kimo/alma-take-home-assignment.git
 cd alma-take-home-assignment
@@ -534,9 +534,9 @@ npm test -- --watch       # watch mode during development
 2. **Verify public access:** open `https://github.com/kimo/alma-take-home-assignment` in incognito
 3. **Final local test:** clone into temp dir, install, run, verify everything works
 4. **Email to shuo@tryalma.ai:**
-   - Subject: `Take-Home Assignment — [Your Name]`
+   - Subject: `Take-Home Assignment — Krishna Guda`
    - Body: link to public GitHub repo
-   - Mention: APPROACH.md for how you thought through the problem, DESIGN.md for system design, README.md for setup
+   - Mention: APPROACH.md for planning process, DESIGN.md for system design, README.md for setup
 5. **Keep repo public** until hearing back
 
 ### Timeline Budget (24 hours)
@@ -733,7 +733,7 @@ sequenceDiagram
 | App Router | Next.js App Router | Pages Router | Modern standard, better server components |
 | UI Library | AntD | Raw components | Production-grade Table, Form, Upload — solves both screens with built-in sorting, pagination, validation. Prior experience. Relevant to Alma's form-heavy domain. |
 | Styling | Antd tokens + Tailwind | styled-components / Tailwind-only | Antd tokens for component theming, Tailwind for layout and custom sections (hero). Best of both. |
-| Storage | In-memory Map | SQLite/Prisma | Zero setup for reviewer, sufficient for demo |
+| Storage | In-memory Map | SQLite/Prisma | Zero setup required, sufficient for demo |
 | Auth | NextAuth credentials | Custom JWT | Real auth library, production pattern |
 | Validation | Antd Form rules + Zod | react-hook-form | Antd Form has native validation UX (inline errors, required marks). Zod defines the schema. No need for a third form library. |
 | File upload | Antd Upload + local fs | Custom dropzone + S3 | Antd Upload gives drag-and-drop + file list UI. Local fs for demo scope. |

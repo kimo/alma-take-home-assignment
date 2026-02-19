@@ -65,10 +65,10 @@ export default function LeadForm() {
       formData.append("visaInterests", JSON.stringify(result.data.visaInterests));
       formData.append("helpMessage", result.data.helpMessage);
 
-      // Attach file if present
-      const fileList = values.resume as { fileList?: { originFileObj?: File }[] };
-      if (fileList?.fileList?.[0]?.originFileObj) {
-        formData.append("resume", fileList.fileList[0].originFileObj);
+      // Attach file
+      const fileList = values.resume as { originFileObj?: File }[];
+      if (fileList?.[0]?.originFileObj) {
+        formData.append("resume", fileList[0].originFileObj);
       }
 
       const response = await fetch("/api/leads", {
@@ -251,10 +251,13 @@ export default function LeadForm() {
           name="helpMessage"
           rules={[
             { required: true, message: "Please tell us how we can help" },
+            { max: 2000, message: "Message must be 2000 characters or fewer" },
           ]}
         >
           <TextArea
             rows={5}
+            maxLength={2000}
+            showCount
             placeholder="What is your current status and when does it expire? What is your past immigration history? Are you looking for long-term permanent residency or short-term employment visa or both? Are there any timeline considerations?"
             size="large"
           />
@@ -265,7 +268,19 @@ export default function LeadForm() {
       <div className="mb-8">
         <Form.Item
           name="resume"
-          valuePropName="file"
+          valuePropName="fileList"
+          getValueFromEvent={(e) => {
+            if (Array.isArray(e)) return e;
+            return e?.fileList;
+          }}
+          rules={[
+            {
+              validator: (_, fileList) => {
+                if (fileList && fileList.length > 0) return Promise.resolve();
+                return Promise.reject(new Error("Please upload your resume / CV"));
+              },
+            },
+          ]}
         >
           <Dragger
             beforeUpload={() => false}

@@ -3,9 +3,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { TeamOutlined, SettingOutlined, MenuOutlined, CloseOutlined } from "@ant-design/icons";
+import { TeamOutlined, SettingOutlined, MenuOutlined, CloseOutlined, LogoutOutlined } from "@ant-design/icons";
 import { useState } from "react";
 import { Switch } from "antd";
+import { signOut } from "next-auth/react";
 import { useAppSelector, useAppDispatch } from "@/lib/redux/hooks";
 import { toggleTheme } from "@/lib/redux/themeSlice";
 
@@ -65,11 +66,20 @@ export default function Sidebar() {
       </div>
 
       <div className="px-5 py-4 border-t border-black/10">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-black/15 flex items-center justify-center text-sm font-medium text-gray-800">
-            A
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-black/15 flex items-center justify-center text-sm font-medium text-gray-800">
+              A
+            </div>
+            <span className="text-sm text-gray-700">Admin</span>
           </div>
-          <span className="text-sm text-gray-700">Admin</span>
+          <button
+            onClick={() => signOut({ callbackUrl: "/login" })}
+            className="text-gray-500 hover:text-gray-800 transition-colors"
+            title="Sign out"
+          >
+            <LogoutOutlined />
+          </button>
         </div>
       </div>
     </>

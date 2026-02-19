@@ -22,6 +22,7 @@ graph TB
         TY["/thank-you — Confirmation"]
         LG["/login — Auth Page"]
         DB["/dashboard — Leads Table<br/>(Antd Table + Search + Filter)"]
+        ST["/dashboard/settings — Form Config<br/>(JSON Schema Editor)"]
     end
 
     subgraph "Next.js Server (App Router)"
@@ -29,6 +30,8 @@ graph TB
             POST["POST /api/leads<br/>Create lead + save file"]
             GET["GET /api/leads<br/>?page&search&status"]
             PATCH["PATCH /api/leads/[id]<br/>Update status"]
+            CFGET["GET /api/form-config<br/>Get JSON Schema"]
+            CFPUT["PUT /api/form-config<br/>Update JSON Schema"]
             AUTH["POST /api/auth/[...nextauth]<br/>Credentials login"]
         end
 
@@ -54,8 +57,15 @@ graph TB
     GET -->|"query"| STORE
     PATCH -->|"mutate"| STORE
 
+    PF -->|"fetch config"| CFGET
+    ST -->|"fetch config"| CFGET
+    ST -->|"save config"| CFPUT
+    CFGET -->|"read"| STORE
+    CFPUT -->|"write"| STORE
+
     MW -.->|"protects"| GET
     MW -.->|"protects"| PATCH
+    MW -.->|"protects"| CFPUT
     MW -.->|"guards"| DB
 
     SEED -->|"init"| STORE
@@ -63,6 +73,7 @@ graph TB
     style PF fill:#e8f5e9,stroke:#2e7d32
     style DB fill:#e3f2fd,stroke:#1565c0
     style STORE fill:#fff3e0,stroke:#e65100
+    style ST fill:#e3f2fd,stroke:#1565c0
     style MW fill:#fce4ec,stroke:#c62828
 ```
 
@@ -108,11 +119,11 @@ sequenceDiagram
     Auth-->>Admin: JWT session cookie
 
     Admin->>Dash: Navigate to /dashboard
-    Dash->>GET: Fetch leads (?page=1&limit=8)
+    Dash->>GET: Fetch leads (?page=1&limit=13)
     GET->>Store: Query all leads
     Store-->>GET: Lead[]
     GET-->>Dash: { leads, total, page, totalPages }
-    Dash-->>Admin: Render table (8 rows)
+    Dash-->>Admin: Render table (13 rows per page)
 
     Admin->>Dash: Click "Mark as Reached Out"
     Dash->>PATCH: PATCH /api/leads/{id} { status: "REACHED_OUT" }
@@ -166,7 +177,7 @@ The data layer uses an in-memory `Map<string, Lead>` initialized with 20 seed re
 | Param | Type | Default | Description |
 |-------|------|---------|-------------|
 | `page` | number | 1 | Page number |
-| `limit` | number | 8 | Items per page |
+| `limit` | number | 13 | Items per page |
 | `search` | string | "" | Filter by name (case-insensitive substring match) |
 | `status` | string | "" | Filter by status (PENDING or REACHED_OUT) |
 
@@ -174,9 +185,15 @@ The data layer uses an in-memory `Map<string, Lead>` initialized with 20 seed re
 
 ## Authentication
 
-NextAuth.js with a credentials provider. Mock login (hardcoded `admin@tryalma.ai` / `admin`) with JWT session strategy. The NextAuth secret has a hardcoded fallback so the reviewer needs zero configuration.
+NextAuth.js with a credentials provider. Mock login (hardcoded `admin@tryalma.ai` / `admin`) with JWT session strategy. The NextAuth secret has a hardcoded fallback so no `.env` setup is needed.
 
-The dashboard layout checks for an active session and redirects unauthenticated users to `/login`.
+The dashboard layout checks for an active session and redirects unauthenticated users to `/login`. A logout button in the sidebar calls `signOut()` and redirects back to `/login`.
+
+---
+
+## Dark Mode
+
+The dashboard supports light/dark theme toggling via a switch in the sidebar. Theme state is managed by Redux Toolkit (`themeSlice`). AntD components are themed through `ConfigProvider` with JavaScript theme token objects (`lightTheme` / `darkTheme`). Non-AntD elements use conditional Tailwind classes driven by the same `isDark` state (e.g. status badges, expanded row text, pagination buttons).
 
 ---
 
@@ -186,7 +203,7 @@ The dashboard layout checks for an active session and redirects unauthenticated 
 |----------|-------|------|-----------|
 | UI Library | AntD | Raw components / Tailwind-only | Table, Form, Upload components solve both screens out of the box. Built-in sorting, pagination, validation. Prior experience enables faster delivery. |
 | Styling | Antd tokens + Tailwind | styled-components | Antd `ConfigProvider` handles component theming. Tailwind handles layout and custom sections (hero). No redundancy. |
-| Storage | In-memory Map | SQLite / Prisma | Zero setup for reviewer. Sufficient for demo scope. |
+| Storage | In-memory Map | SQLite / Prisma | Zero setup required. Sufficient for demo scope. |
 | Validation | Antd Form rules + Zod | react-hook-form | Antd Form has native validation UX (inline errors, required marks). Zod defines the type-safe schema. |
 | Detail view | Expandable table rows | Separate detail page | Keeps admin in table context. Click a row to see all lead info (email, LinkedIn, visas, resume, message) without navigation. Satisfies "display all information" while matching the table-centric mock. |
 | Auth | NextAuth credentials | Custom JWT | Real auth library with production patterns. Minimal code for mock credentials. |

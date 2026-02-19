@@ -12,7 +12,7 @@ export const leadFormSchema = z.object({
   visaInterests: z
     .array(z.string())
     .min(1, "Please select at least one visa category"),
-  helpMessage: z.string().min(1, "Please tell us how we can help"),
+  helpMessage: z.string().min(1, "Please tell us how we can help").max(2000, "Message must be 2000 characters or fewer"),
 });
 
 export type LeadFormValues = z.infer<typeof leadFormSchema>;

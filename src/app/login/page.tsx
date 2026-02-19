@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { ConfigProvider, Form, Input, Button, message } from "antd";
 import { theme } from "@/lib/theme";
 
@@ -31,8 +32,10 @@ export default function LoginPage() {
     <ConfigProvider theme={theme}>
       <main className="min-h-screen flex items-center justify-center bg-gray-50 px-6">
         <div className="w-full max-w-sm">
-          <div className="text-center mb-8">
-            <p className="text-2xl font-light tracking-wide mb-2">alma</p>
+          <div className="flex flex-col items-center mb-8">
+            <div className="w-20 mb-3">
+              <Image src="/alma-logo.svg" alt="alma" width={80} height={24} className="w-full h-auto" />
+            </div>
             <h1 className="text-xl font-semibold text-gray-900">Sign In</h1>
           </div>
 

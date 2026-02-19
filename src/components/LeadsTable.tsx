@@ -94,8 +94,8 @@ export default function LeadsTable() {
         <span
           className={`text-xs px-2 py-1 rounded-full ${
             status === "PENDING"
-              ? "bg-yellow-100 text-yellow-800"
-              : "bg-green-100 text-green-800"
+              ? isDark ? "bg-yellow-900/30 text-yellow-300" : "bg-yellow-100 text-yellow-800"
+              : isDark ? "bg-green-900/30 text-green-300" : "bg-green-100 text-green-800"
           }`}
         >
           {status === "REACHED_OUT" ? "Reached Out" : "Pending"}
@@ -129,43 +129,47 @@ export default function LeadsTable() {
     },
   ];
 
+  const labelColor = isDark ? "text-gray-400" : "text-gray-500";
+  const valueColor = isDark ? "text-gray-100" : "text-gray-900";
+  const linkColor = isDark ? "text-blue-400" : "text-blue-600";
+
   const expandedRowRender = (record: Lead) => (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-2 px-4 text-sm">
       <div>
-        <span className="text-gray-500">Email:</span>{" "}
-        <span className="text-gray-900">{record.email}</span>
+        <span className={labelColor}>Email:</span>{" "}
+        <span className={valueColor}>{record.email}</span>
       </div>
       <div>
-        <span className="text-gray-500">LinkedIn:</span>{" "}
+        <span className={labelColor}>LinkedIn:</span>{" "}
         <a
           href={record.linkedIn}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-blue-600 hover:underline"
+          className={`${linkColor} hover:underline`}
         >
           {record.linkedIn}
         </a>
       </div>
       <div>
-        <span className="text-gray-500">Visa Interests:</span>{" "}
-        <span className="text-gray-900">{record.visaInterests.join(", ")}</span>
+        <span className={labelColor}>Visa Interests:</span>{" "}
+        <span className={valueColor}>{record.visaInterests.join(", ")}</span>
       </div>
       <div>
-        <span className="text-gray-500">Resume:</span>{" "}
+        <span className={labelColor}>Resume:</span>{" "}
         {record.resumeFileName ? (
           <a
             href={`/api/leads/${record.id}/download`}
-            className="text-blue-600 hover:underline"
+            className={`${linkColor} hover:underline`}
           >
             {record.resumeFileName}
           </a>
         ) : (
-          <span className="text-gray-400">Not uploaded</span>
+          <span className={isDark ? "text-gray-500" : "text-gray-400"}>Not uploaded</span>
         )}
       </div>
       <div className="md:col-span-2">
-        <span className="text-gray-500">Message:</span>{" "}
-        <span className="text-gray-900">{record.helpMessage}</span>
+        <span className={labelColor}>Message:</span>{" "}
+        <span className={valueColor}>{record.helpMessage}</span>
       </div>
     </div>
   );
@@ -235,8 +239,8 @@ export default function LeadsTable() {
                       <span
                         className={`text-xs px-2 py-1 rounded-full ${
                           lead.status === "PENDING"
-                            ? "bg-yellow-100 text-yellow-800"
-                            : "bg-green-100 text-green-800"
+                            ? isDark ? "bg-yellow-900/30 text-yellow-300" : "bg-yellow-100 text-yellow-800"
+                            : isDark ? "bg-green-900/30 text-green-300" : "bg-green-100 text-green-800"
                         }`}
                       >
                         {lead.status === "REACHED_OUT"
@@ -249,35 +253,35 @@ export default function LeadsTable() {
                     </div>
 
                     {isExpanded && (
-                      <div className="mt-3 pt-3 border-t border-gray-100 text-sm space-y-2">
+                      <div className={`mt-3 pt-3 border-t text-sm space-y-2 ${isDark ? "border-gray-600" : "border-gray-100"}`}>
                         <div>
-                          <span className="text-gray-500">Email:</span>{" "}
-                          <span className="text-gray-900">{lead.email}</span>
+                          <span className={labelColor}>Email:</span>{" "}
+                          <span className={valueColor}>{lead.email}</span>
                         </div>
                         <div>
-                          <span className="text-gray-500">LinkedIn:</span>{" "}
+                          <span className={labelColor}>LinkedIn:</span>{" "}
                           <a
                             href={lead.linkedIn}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-blue-600 hover:underline break-all"
+                            className={`${linkColor} hover:underline break-all`}
                             onClick={(e) => e.stopPropagation()}
                           >
                             {lead.linkedIn}
                           </a>
                         </div>
                         <div>
-                          <span className="text-gray-500">Visa:</span>{" "}
-                          <span className="text-gray-900">
+                          <span className={labelColor}>Visa:</span>{" "}
+                          <span className={valueColor}>
                             {lead.visaInterests.join(", ")}
                           </span>
                         </div>
                         {lead.resumeFileName && (
                           <div>
-                            <span className="text-gray-500">Resume:</span>{" "}
+                            <span className={labelColor}>Resume:</span>{" "}
                             <a
                               href={`/api/leads/${lead.id}/download`}
-                              className="text-blue-600 hover:underline"
+                              className={`${linkColor} hover:underline`}
                               onClick={(e) => e.stopPropagation()}
                             >
                               {lead.resumeFileName}
@@ -285,8 +289,8 @@ export default function LeadsTable() {
                           </div>
                         )}
                         <div>
-                          <span className="text-gray-500">Message:</span>{" "}
-                          <span className="text-gray-900">
+                          <span className={labelColor}>Message:</span>{" "}
+                          <span className={valueColor}>
                             {lead.helpMessage}
                           </span>
                         </div>
@@ -314,9 +318,9 @@ export default function LeadsTable() {
 
             {/* Mobile pagination */}
             {total > 13 && (
-              <div className="flex items-center justify-between mt-4 text-sm text-gray-500">
+              <div className={`flex items-center justify-between mt-4 text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>
                 <button
-                  className="px-3 py-1.5 rounded border border-gray-200 disabled:opacity-40"
+                  className={`px-3 py-1.5 rounded border disabled:opacity-40 ${isDark ? "border-gray-600" : "border-gray-200"}`}
                   disabled={page === 1}
                   onClick={() => setPage(page - 1)}
                 >
@@ -326,7 +330,7 @@ export default function LeadsTable() {
                   Page {page} of {Math.ceil(total / 13)}
                 </span>
                 <button
-                  className="px-3 py-1.5 rounded border border-gray-200 disabled:opacity-40"
+                  className={`px-3 py-1.5 rounded border disabled:opacity-40 ${isDark ? "border-gray-600" : "border-gray-200"}`}
                   disabled={page >= Math.ceil(total / 13)}
                   onClick={() => setPage(page + 1)}
                 >

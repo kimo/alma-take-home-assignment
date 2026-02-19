@@ -10,18 +10,15 @@ import Sidebar from "@/components/Sidebar";
 function DashboardGuard({ children }: { children: React.ReactNode }) {
   const { status } = useSession();
   const router = useRouter();
-  const [checked, setChecked] = useState(false);
   const { isDark } = useContext(ThemeContext);
 
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/login");
-    } else if (status === "authenticated") {
-      setChecked(true);
     }
   }, [status, router]);
 
-  if (!checked) {
+  if (status !== "authenticated") {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Spin size="large" />

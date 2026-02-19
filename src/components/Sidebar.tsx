@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { TeamOutlined, SettingOutlined, MenuOutlined, CloseOutlined } from "@ant-design/icons";
@@ -21,7 +22,7 @@ export default function Sidebar() {
     <>
       <div className="px-5 pt-6 pb-4 flex items-center justify-between">
         <div className="w-16">
-          <img src="/alma-logo.svg" alt="alma" className="w-full h-auto" />
+          <Image src="/alma-logo.svg" alt="alma" width={80} height={24} className="w-full h-auto" />
         </div>
         <button
           className="lg:hidden text-gray-700 text-xl"
@@ -80,7 +81,7 @@ export default function Sidebar() {
           <MenuOutlined />
         </button>
         <div className="w-14">
-          <img src="/alma-logo.svg" alt="alma" className="w-full h-auto" />
+          <Image src="/alma-logo.svg" alt="alma" width={80} height={24} className="w-full h-auto" />
         </div>
       </div>
 

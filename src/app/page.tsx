@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { ConfigProvider } from "antd";
 import { theme } from "@/lib/theme";
 import LeadForm from "@/components/LeadForm";
@@ -15,7 +16,7 @@ export default function Home() {
         >
           <div className="relative mx-auto pl-24 pr-6 md:px-6 py-12 md:py-16" style={{ maxWidth: 480 }}>
             <div className="mb-4 w-16 md:w-20">
-              <img src="/alma-logo.svg" alt="alma" className="w-full h-auto" />
+              <Image src="/alma-logo.svg" alt="alma" width={80} height={24} className="w-full h-auto" />
             </div>
             <h1 className="text-black text-2xl sm:text-3xl md:text-4xl font-bold leading-tight">
               Get An Assessment

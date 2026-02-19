@@ -25,7 +25,7 @@ export default function SettingsPage() {
         message.error("Failed to load form configuration");
       })
       .finally(() => setLoading(false));
-  }, []);
+  }, [message]);
 
   const handleSave = async () => {
     setError(null);

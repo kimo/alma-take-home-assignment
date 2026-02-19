@@ -46,7 +46,7 @@ export default function LeadsTable() {
     } finally {
       setLoading(false);
     }
-  }, [page, search, statusFilter]);
+  }, [page, search, statusFilter, message]);
 
   useEffect(() => {
     fetchLeads();

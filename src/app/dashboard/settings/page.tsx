@@ -91,9 +91,11 @@ export default function SettingsPage() {
         <p
           className={`mb-4 text-sm ${isDark ? "text-gray-400" : "text-gray-600"}`}
         >
-          Edit the JSON Schema below to configure the public lead form. Changes
-          to the <code className="text-xs bg-gray-100 px-1 rounded">country.enum</code> array
-          will update the country dropdown options.
+          Edit the JSON Schema below to configure the public lead form.{" "}
+          <span className="text-amber-600 font-medium">
+            Currently, only the <code className="text-xs bg-amber-50 px-1 rounded border border-amber-200">country.enum</code> array
+            is wired to the live form.
+          </span>
         </p>
 
         <TextArea

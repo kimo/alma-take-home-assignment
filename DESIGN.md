@@ -34,7 +34,7 @@ graph TB
 
         subgraph "Data Layer"
             STORE["In-Memory Store<br/>(Map&lt;string, Lead&gt;)"]
-            SEED["Seed Data<br/>(8 mock leads)"]
+            SEED["Seed Data<br/>(20 seed leads)"]
             FS["Local Filesystem<br/>(uploads/)"]
         end
 
@@ -147,7 +147,7 @@ interface Lead {
 
 ### Storage
 
-The data layer uses an in-memory `Map<string, Lead>` initialized with 8 seed records that match the assignment mocks. This is appropriate for the demo scope — data persists for the lifetime of the server process.
+The data layer uses an in-memory `Map<string, Lead>` initialized with 20 seed records (the original 8 from the assignment mocks plus 12 additional leads for realistic pagination). This is appropriate for the demo scope — data persists for the lifetime of the server process.
 
 ---
 
@@ -158,6 +158,8 @@ The data layer uses an in-memory `Map<string, Lead>` initialized with 8 seed rec
 | `POST` | `/api/leads` | Public | Create lead from form submission (multipart FormData) |
 | `GET` | `/api/leads` | Required | List leads with pagination, search, and status filter |
 | `PATCH` | `/api/leads/[id]` | Required | Transition lead status from PENDING to REACHED_OUT |
+| `GET` | `/api/form-config` | Public | Get current form JSON Schema (public form needs it) |
+| `PUT` | `/api/form-config` | Required | Update form JSON Schema (validates structure) |
 
 ### Query Parameters (GET)
 
@@ -185,7 +187,6 @@ The dashboard layout checks for an active session and redirects unauthenticated 
 | UI Library | AntD | Raw components / Tailwind-only | Table, Form, Upload components solve both screens out of the box. Built-in sorting, pagination, validation. Prior experience enables faster delivery. |
 | Styling | Antd tokens + Tailwind | styled-components | Antd `ConfigProvider` handles component theming. Tailwind handles layout and custom sections (hero). No redundancy. |
 | Storage | In-memory Map | SQLite / Prisma | Zero setup for reviewer. Sufficient for demo scope. |
-| State management | Antd internal + fetch | Redux | Antd Table and Form manage their own UI state. Server state is simple fetch + useState. Redux adds boilerplate with no benefit at this scale. |
 | Validation | Antd Form rules + Zod | react-hook-form | Antd Form has native validation UX (inline errors, required marks). Zod defines the type-safe schema. |
 | Detail view | Expandable table rows | Separate detail page | Keeps admin in table context. Click a row to see all lead info (email, LinkedIn, visas, resume, message) without navigation. Satisfies "display all information" while matching the table-centric mock. |
 | Auth | NextAuth credentials | Custom JWT | Real auth library with production patterns. Minimal code for mock credentials. |
@@ -193,6 +194,8 @@ The dashboard layout checks for an active session and redirects unauthenticated 
 | File upload | Antd Upload + local fs | S3 / custom dropzone | Antd Upload provides drag-and-drop UI. Local filesystem for demo scope. |
 | CSS-in-JS | AntD design tokens | styled-components / CSS modules | AntD's `ConfigProvider` accepts JavaScript theme token objects and generates all component styles at runtime via `@ant-design/cssinjs`. The dashboard light/dark toggle demonstrates this: flipping a React state swaps the token object, and cssinjs regenerates every component's styles dynamically — no static CSS files involved. |
 | Config-driven forms | JSON Schema + Settings editor | Full JsonForms library | The lead form's structure is defined as a JSON Schema (draft-07), stored server-side, and editable via the Settings page. The public form fetches the active schema and uses it to populate the country dropdown. This demonstrates config-driven architecture without installing `@jsonforms/core` or building custom renderers — same concept, lighter footprint. |
+| Client state | Redux Toolkit | React Context | Redux Toolkit manages UI state (theme toggle) with `createSlice` — typed hooks (`useAppSelector`, `useAppDispatch`), devtools support, and a scalable pattern for future client state (sidebar collapse, user preferences). |
+| Server state | TanStack React Query | Manual fetch + useState | React Query handles all API data (leads list, form config) with `useQuery` and `useMutation`. Provides automatic caching (`staleTime: 30s`), background refetching, cache invalidation on mutations, and loading/error states — eliminates manual fetch boilerplate. |
 
 ---
 

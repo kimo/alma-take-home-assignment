@@ -1,33 +1,49 @@
 "use client";
 
-import { useState, useEffect, useContext } from "react";
+import { useState } from "react";
 import { Button, Input, Spin, App } from "antd";
 import { SettingOutlined, SaveOutlined } from "@ant-design/icons";
-import { ThemeContext } from "@/lib/theme";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { useAppSelector } from "@/lib/redux/hooks";
 
 const { TextArea } = Input;
 
-export default function SettingsPage() {
-  const { isDark } = useContext(ThemeContext);
+async function fetchFormConfig(): Promise<Record<string, unknown>> {
+  const res = await fetch("/api/form-config");
+  if (!res.ok) throw new Error("Failed to load form configuration");
+  return res.json();
+}
+
+async function saveFormConfig(schema: unknown): Promise<Record<string, unknown>> {
+  const res = await fetch("/api/form-config", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(schema),
+  });
+  if (!res.ok) {
+    const data = await res.json();
+    throw new Error(data.error || "Failed to save configuration");
+  }
+  return res.json();
+}
+
+function SchemaEditor({ initialSchema }: { initialSchema: Record<string, unknown> }) {
+  const isDark = useAppSelector((state) => state.theme.isDark);
   const { message } = App.useApp();
-  const [schemaText, setSchemaText] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+  const [schemaText, setSchemaText] = useState(() => JSON.stringify(initialSchema, null, 2));
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetch("/api/form-config")
-      .then((res) => res.json())
-      .then((data) => {
-        setSchemaText(JSON.stringify(data, null, 2));
-      })
-      .catch(() => {
-        message.error("Failed to load form configuration");
-      })
-      .finally(() => setLoading(false));
-  }, [message]);
+  const saveMutation = useMutation({
+    mutationFn: saveFormConfig,
+    onSuccess: () => {
+      message.success("Form configuration saved");
+    },
+    onError: (err: Error) => {
+      setError(err.message);
+    },
+  });
 
-  const handleSave = async () => {
+  const handleSave = () => {
     setError(null);
 
     let parsed: unknown;
@@ -38,35 +54,8 @@ export default function SettingsPage() {
       return;
     }
 
-    setSaving(true);
-    try {
-      const res = await fetch("/api/form-config", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(parsed),
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        setError(data.error || "Failed to save configuration");
-        return;
-      }
-
-      message.success("Form configuration saved");
-    } catch {
-      setError("Failed to save configuration");
-    } finally {
-      setSaving(false);
-    }
+    saveMutation.mutate(parsed);
   };
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-16">
-        <Spin size="large" />
-      </div>
-    );
-  }
 
   return (
     <div>
@@ -115,7 +104,7 @@ export default function SettingsPage() {
           <Button
             type="primary"
             icon={<SaveOutlined />}
-            loading={saving}
+            loading={saveMutation.isPending}
             onClick={handleSave}
           >
             Save Configuration
@@ -124,4 +113,21 @@ export default function SettingsPage() {
       </div>
     </div>
   );
+}
+
+export default function SettingsPage() {
+  const { data, isLoading } = useQuery({
+    queryKey: ["form-config"],
+    queryFn: fetchFormConfig,
+  });
+
+  if (isLoading || !data) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <Spin size="large" />
+      </div>
+    );
+  }
+
+  return <SchemaEditor initialSchema={data} />;
 }

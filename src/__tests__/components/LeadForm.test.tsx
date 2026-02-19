@@ -1,10 +1,20 @@
 import { render, screen } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import LeadForm from "@/components/LeadForm";
 
 // Mock next/navigation
 jest.mock("next/navigation", () => ({
   useRouter: () => ({ push: jest.fn() }),
 }));
+
+function renderWithProviders(ui: React.ReactElement) {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+  return render(
+    <QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>
+  );
+}
 
 // Mock fetch for form config (LeadForm fetches /api/form-config on mount)
 beforeEach(() => {
@@ -26,7 +36,7 @@ afterEach(() => {
 
 describe("LeadForm", () => {
   it("renders all form sections", () => {
-    render(<LeadForm />);
+    renderWithProviders(<LeadForm />);
 
     expect(
       screen.getByText("Want to understand your visa options?")
@@ -38,7 +48,7 @@ describe("LeadForm", () => {
   });
 
   it("renders all required input fields", () => {
-    render(<LeadForm />);
+    renderWithProviders(<LeadForm />);
 
     expect(screen.getByPlaceholderText("First Name")).toBeInTheDocument();
     expect(screen.getByPlaceholderText("Last Name")).toBeInTheDocument();
@@ -49,7 +59,7 @@ describe("LeadForm", () => {
   });
 
   it("renders visa category checkboxes", () => {
-    render(<LeadForm />);
+    renderWithProviders(<LeadForm />);
 
     expect(screen.getByText("O-1")).toBeInTheDocument();
     expect(screen.getByText("EB-1A")).toBeInTheDocument();
@@ -58,14 +68,14 @@ describe("LeadForm", () => {
   });
 
   it("renders the submit button", () => {
-    render(<LeadForm />);
+    renderWithProviders(<LeadForm />);
 
     const submitButton = screen.getByRole("button", { name: /submit/i });
     expect(submitButton).toBeInTheDocument();
   });
 
   it("renders the resume upload area", () => {
-    render(<LeadForm />);
+    renderWithProviders(<LeadForm />);
 
     expect(
       screen.getByText("Upload your resume / CV")
@@ -76,7 +86,7 @@ describe("LeadForm", () => {
   });
 
   it("renders the help message textarea with placeholder", () => {
-    render(<LeadForm />);
+    renderWithProviders(<LeadForm />);
 
     const textarea = screen.getByPlaceholderText(
       /What is your current status/i
@@ -85,7 +95,7 @@ describe("LeadForm", () => {
   });
 
   it("renders the country selector", () => {
-    render(<LeadForm />);
+    renderWithProviders(<LeadForm />);
 
     // Ant Design Select renders with role combobox
     const selects = screen.getAllByRole("combobox");

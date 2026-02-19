@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect, useCallback, useContext } from "react";
+import { useState } from "react";
 import { Table, Input, Select, Button, Spin, App } from "antd";
 import { SearchOutlined } from "@ant-design/icons";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { ColumnsType } from "antd/es/table";
 import type { Lead, LeadsResponse } from "@/lib/types";
-import { ThemeContext } from "@/lib/theme";
+import { useAppSelector } from "@/lib/redux/hooks";
 
 const formatDate = (date: string) =>
   new Date(date).toLocaleString("en-US", {
@@ -17,55 +18,57 @@ const formatDate = (date: string) =>
     hour12: true,
   });
 
+async function fetchLeads(page: number, search: string, statusFilter: string): Promise<LeadsResponse> {
+  const params = new URLSearchParams({
+    page: String(page),
+    limit: "13",
+    search,
+    status: statusFilter === "all" ? "" : statusFilter,
+  });
+  const res = await fetch(`/api/leads?${params}`);
+  if (!res.ok) throw new Error("Failed to fetch leads");
+  return res.json();
+}
+
+async function updateLeadStatus(id: string): Promise<void> {
+  const res = await fetch(`/api/leads/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ status: "REACHED_OUT" }),
+  });
+  if (!res.ok) throw new Error("Failed to update status");
+}
+
 export default function LeadsTable() {
-  const [leads, setLeads] = useState<Lead[]>([]);
-  const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [loading, setLoading] = useState(false);
   const [expandedRowKeys, setExpandedRowKeys] = useState<string[]>([]);
-  const { isDark } = useContext(ThemeContext);
+  const isDark = useAppSelector((state) => state.theme.isDark);
   const { message } = App.useApp();
+  const queryClient = useQueryClient();
 
-  const fetchLeads = useCallback(async () => {
-    setLoading(true);
-    try {
-      const params = new URLSearchParams({
-        page: String(page),
-        limit: "13",
-        search,
-        status: statusFilter === "all" ? "" : statusFilter,
-      });
-      const res = await fetch(`/api/leads?${params}`);
-      const data: LeadsResponse = await res.json();
-      setLeads(data.leads);
-      setTotal(data.total);
-    } catch {
-      message.error("Failed to load leads");
-    } finally {
-      setLoading(false);
-    }
-  }, [page, search, statusFilter, message]);
+  const { data, isLoading } = useQuery({
+    queryKey: ["leads", page, search, statusFilter],
+    queryFn: () => fetchLeads(page, search, statusFilter),
+  });
 
-  useEffect(() => {
-    fetchLeads();
-  }, [fetchLeads]);
+  const leads = data?.leads ?? [];
+  const total = data?.total ?? 0;
 
-  const handleStatusUpdate = async (id: string) => {
-    try {
-      const res = await fetch(`/api/leads/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: "REACHED_OUT" }),
-      });
-      if (res.ok) {
-        message.success("Status updated");
-        fetchLeads();
-      }
-    } catch {
+  const statusMutation = useMutation({
+    mutationFn: updateLeadStatus,
+    onSuccess: () => {
+      message.success("Status updated");
+      queryClient.invalidateQueries({ queryKey: ["leads"] });
+    },
+    onError: () => {
       message.error("Failed to update status");
-    }
+    },
+  });
+
+  const handleStatusUpdate = (id: string) => {
+    statusMutation.mutate(id);
   };
 
   const columns: ColumnsType<Lead> = [
@@ -201,7 +204,7 @@ export default function LeadsTable() {
 
       {/* Mobile card view */}
       <div className="lg:hidden">
-        {loading ? (
+        {isLoading ? (
           <div className="flex justify-center py-12">
             <Spin size="large" />
           </div>
@@ -341,7 +344,7 @@ export default function LeadsTable() {
           columns={columns}
           dataSource={leads}
           rowKey="id"
-          loading={loading}
+          loading={isLoading}
           scroll={{ x: 700 }}
           expandable={{
             expandedRowRender,

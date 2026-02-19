@@ -1,4 +1,8 @@
 import { render, screen, waitFor } from "@testing-library/react";
+import { Provider } from "react-redux";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { App } from "antd";
+import { makeStore } from "@/lib/redux/store";
 import LeadsTable from "@/components/LeadsTable";
 
 // Mock fetch globally
@@ -38,6 +42,20 @@ const mockLeadsResponse = {
   totalPages: 1,
 };
 
+function renderWithProviders(ui: React.ReactElement) {
+  const store = makeStore();
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+  return render(
+    <Provider store={store}>
+      <QueryClientProvider client={queryClient}>
+        <App>{ui}</App>
+      </QueryClientProvider>
+    </Provider>
+  );
+}
+
 beforeEach(() => {
   global.fetch = jest.fn().mockResolvedValue({
     ok: true,
@@ -51,23 +69,23 @@ afterEach(() => {
 
 describe("LeadsTable", () => {
   it("renders the page title", () => {
-    render(<LeadsTable />);
+    renderWithProviders(<LeadsTable />);
     expect(screen.getByText("Leads")).toBeInTheDocument();
   });
 
   it("renders the search input", () => {
-    render(<LeadsTable />);
+    renderWithProviders(<LeadsTable />);
     expect(screen.getByPlaceholderText("Search")).toBeInTheDocument();
   });
 
   it("renders the status filter dropdown", () => {
-    render(<LeadsTable />);
+    renderWithProviders(<LeadsTable />);
     const selects = screen.getAllByRole("combobox");
     expect(selects.length).toBeGreaterThanOrEqual(1);
   });
 
   it("fetches leads on mount", () => {
-    render(<LeadsTable />);
+    renderWithProviders(<LeadsTable />);
 
     expect(global.fetch).toHaveBeenCalledWith(
       expect.stringContaining("/api/leads?")
@@ -75,7 +93,7 @@ describe("LeadsTable", () => {
   });
 
   it("renders lead names after fetch", async () => {
-    render(<LeadsTable />);
+    renderWithProviders(<LeadsTable />);
 
     // Both mobile card view and desktop table render, so names appear twice
     await waitFor(() => {
@@ -90,7 +108,7 @@ describe("LeadsTable", () => {
   });
 
   it("renders status badges with correct text", async () => {
-    render(<LeadsTable />);
+    renderWithProviders(<LeadsTable />);
 
     await waitFor(() => {
       const pendingBadges = screen.getAllByText("Pending");
@@ -105,7 +123,7 @@ describe("LeadsTable", () => {
   });
 
   it("renders action button for PENDING leads", async () => {
-    render(<LeadsTable />);
+    renderWithProviders(<LeadsTable />);
 
     await waitFor(() => {
       // Button appears in both mobile and desktop views
@@ -115,7 +133,7 @@ describe("LeadsTable", () => {
   });
 
   it("renders country for each lead", async () => {
-    render(<LeadsTable />);
+    renderWithProviders(<LeadsTable />);
 
     // Country appears in both mobile card view and desktop table
     await waitFor(() => {
@@ -130,7 +148,7 @@ describe("LeadsTable", () => {
   });
 
   it("includes pagination params in fetch", () => {
-    render(<LeadsTable />);
+    renderWithProviders(<LeadsTable />);
 
     expect(global.fetch).toHaveBeenCalledWith(
       expect.stringContaining("page=1")

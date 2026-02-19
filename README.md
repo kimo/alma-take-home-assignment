@@ -36,6 +36,8 @@ Password: admin
 |-------|-----------|
 | Framework | Next.js 15 (App Router, TypeScript) |
 | UI | AntD + Tailwind CSS |
+| Client State | Redux Toolkit (theme toggle) |
+| Server State | TanStack React Query (leads, form config) |
 | Auth | NextAuth.js (credentials provider, JWT sessions) |
 | Validation | Zod schemas wired to Antd Form rules |
 | Storage | In-memory store (Map) with seed data |
@@ -85,7 +87,7 @@ src/
 │   ├── thank-you/page.tsx          # Confirmation page
 │   ├── login/page.tsx              # Login page
 │   ├── dashboard/
-│   │   ├── layout.tsx              # Sidebar + auth guard + theme provider
+│   │   ├── layout.tsx              # Redux + React Query + auth guard
 │   │   ├── page.tsx                # Leads table
 │   │   └── settings/page.tsx       # Form config (JSON Schema editor)
 │   └── api/
@@ -104,7 +106,11 @@ src/
 │   ├── seed.ts                     # 20 seed leads
 │   ├── auth.ts                     # NextAuth config
 │   ├── theme.ts                    # AntD theme tokens (light + dark)
-│   └── formConfigStore.ts         # JSON Schema config store
+│   ├── formConfigStore.ts         # JSON Schema config store
+│   └── redux/
+│       ├── store.ts                # Redux store (configureStore)
+│       ├── hooks.ts                # Typed useAppSelector/useAppDispatch
+│       └── themeSlice.ts           # Theme state (light/dark toggle)
 └── __tests__/
     ├── api/
     │   ├── leads.test.ts           # Store CRUD tests

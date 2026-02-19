@@ -24,12 +24,13 @@
 |---|-------|----------|---------------|-------|
 | 1 | Next.js API routes | **YES** | 3 real endpoints: `POST /api/leads`, `GET /api/leads`, `PATCH /api/leads/[id]`. In-memory store — fully functional, not mocked. | Phase 2 |
 | 2 | JsonForms (config-driven) | **YES — Phase 5.5** | Config-driven architecture: JSON Schema (draft-07) stored server-side, editable via Settings page, public form fetches schema dynamically. Demonstrates the concept without `@jsonforms/core` overhead. | Phase 5.5 |
-| 3 | State management (Redux) | **SKIP** | Antd Table/Form manage UI state internally. Server state is simple fetch + useState. Redux adds boilerplate with no benefit at this scale. Documented as conscious trade-off in DESIGN.md — shows architectural judgment. | — |
-| 4 | Unit tests | **YES** | 12 test cases: form rendering, validation (empty/email/URL), submit flow, table rendering, filters, status update, all 3 API endpoints. Jest + React Testing Library. | Phase 6 |
-| 5 | Responsive design | **YES** | Antd responsive components + Tailwind breakpoint utilities (`md:`, `lg:`). Mobile form stacks naturally. Table horizontally scrollable on mobile. | Phase 5 |
-| 6 | TypeScript | **YES** | Project scaffolded with TypeScript from start. Zod schemas infer types. `Lead` interface defined in `lib/types.ts`. | Phase 1 |
-| 7 | Form validation feedback | **YES** | Antd Form built-in inline error messages per field + Zod schema for type-safe rules. Required, email format, URL format validations with real-time feedback. | Phase 3 |
-| 8 | System design document | **YES** | DESIGN.md — architecture diagram, data flow, API design, trade-offs table, scaling considerations. | Phase 6 |
+| 3 | Unit tests | **YES** | 12 test cases: form rendering, validation (empty/email/URL), submit flow, table rendering, filters, status update, all 3 API endpoints. Jest + React Testing Library. | Phase 6 |
+| 4 | Responsive design | **YES** | Antd responsive components + Tailwind breakpoint utilities (`md:`, `lg:`). Mobile form stacks naturally. Table horizontally scrollable on mobile. | Phase 5 |
+| 5 | TypeScript | **YES** | Project scaffolded with TypeScript from start. Zod schemas infer types. `Lead` interface defined in `lib/types.ts`. | Phase 1 |
+| 6 | Form validation feedback | **YES** | Antd Form built-in inline error messages per field + Zod schema for type-safe rules. Required, email format, URL format validations with real-time feedback. | Phase 3 |
+| 7 | System design document | **YES** | DESIGN.md — architecture diagram, data flow, API design, trade-offs table, scaling considerations. | Phase 6 |
+| 8 | State management (Redux) | **YES** | Redux Toolkit for client-side UI state (theme toggle). `createSlice`, `configureStore`, typed hooks (`useAppSelector`, `useAppDispatch`). | Post-Phase 6 |
+| 9 | Server state (React Query) | **YES** | TanStack React Query for all API data. `useQuery` for fetching leads and form config, `useMutation` for status updates and config saves. Automatic caching and cache invalidation. | Post-Phase 6 |
 
 ### Tech Requirements → Implementation Mapping
 
@@ -183,6 +184,8 @@ The mock only shows 4 columns (Name, Submitted, Status, Country), but the requir
 | API | Next.js API routes | Bonus points, keeps it self-contained |
 | Storage | In-memory store (Map) | Take-home scope — no need for a real DB. Data persists during server lifetime. |
 | Auth | NextAuth.js with credentials provider | Real auth pattern with mock credentials (admin@tryalma.ai / admin) |
+| Client state | Redux Toolkit | Theme toggle, typed hooks. Scalable pattern for UI state. |
+| Server state | TanStack React Query | Leads list, form config. Caching, background refetch, cache invalidation. |
 | Testing | Jest + React Testing Library | Standard for Next.js |
 | File upload | Antd Upload + Next.js API route + local filesystem | Antd Upload gives drag-and-drop + file list UI. API route saves to local fs. |
 
@@ -203,7 +206,6 @@ The mock only shows 4 columns (Name, Submitted, Status, Country), but the requir
 
 ### Why NOT these alternatives:
 - **SQLite/Prisma** — overkill for a take-home, adds setup complexity for the reviewer
-- **Redux** — the assignment suggests it, but this app has simple server state. Antd Table + Form manage their own UI state internally. Server state is simple enough for fetch + useState. Would mention in design doc as a conscious trade-off.
 - **JsonForms** — config-driven form rendering. No official Antd renderer set — requires writing custom renderers mapping JsonForms controls to Antd components. Planned as optional Phase 5.5 refactor if time allows. In production, eliminates dev cycles for form changes (non-engineers edit JSON config instead of React code). Highly relevant for Alma's domain where different visa types need different forms and immigration law changes frequently.
 - **styled-components** — AntD already provides component-level theming via design tokens. Adding styled-components on top would be redundant. Tailwind handles the remaining layout needs.
 - **Raw Tailwind only** — would require building Table (sorting, pagination), Form (validation, error states), Upload (file handling) from scratch. Antd provides these production-ready.
@@ -218,7 +220,7 @@ alma-take-home-assignment/
 │   │   ├── thank-you/page.tsx          # Confirmation after submit
 │   │   ├── login/page.tsx              # Login page (admin@tryalma.ai / admin)
 │   │   ├── dashboard/
-│   │   │   ├── layout.tsx              # Sidebar + auth guard + theme provider
+│   │   │   ├── layout.tsx              # Redux + React Query + auth guard
 │   │   │   ├── page.tsx                # Leads table
 │   │   │   └── settings/page.tsx       # Form config (JSON Schema editor)
 │   │   ├── api/
@@ -238,7 +240,11 @@ alma-take-home-assignment/
 │   │   ├── seed.ts                     # 20 seed leads
 │   │   ├── auth.ts                     # NextAuth config
 │   │   ├── theme.ts                    # AntD theme tokens (light + dark)
-│   │   └── formConfigStore.ts          # JSON Schema config store
+│   │   ├── formConfigStore.ts          # JSON Schema config store
+│   │   └── redux/
+│   │       ├── store.ts                # Redux store (configureStore)
+│   │       ├── hooks.ts                # Typed useAppSelector/useAppDispatch
+│   │       └── themeSlice.ts           # Theme state (light/dark toggle)
 │   └── __tests__/
 │       ├── api/
 │       │   ├── leads.test.ts           # Store CRUD tests
@@ -289,7 +295,7 @@ interface Lead {
 ```
 
 ### Seed Data
-Pre-populate with the 8 leads from the mock (Jorge Ruiz, Bahar Zamir, etc.) so the dashboard looks correct on first load. Anand Jain gets status "REACHED_OUT", rest are "PENDING".
+Pre-populate with 20 seed leads — the original 8 from the mock (Jorge Ruiz, Bahar Zamir, etc.) plus 12 additional leads for realistic pagination. Anand Jain and select others get status "REACHED_OUT", rest are "PENDING".
 
 ---
 
@@ -414,7 +420,7 @@ npm run dev
 - Open `http://localhost:3000` → public lead form
 - Go to `/dashboard` → redirected to login
 - Login: `admin@tryalma.ai` / `admin`
-- Dashboard pre-loaded with 8 seed leads matching the mock
+- Dashboard pre-loaded with 20 seed leads (8 from mock + 12 additional for pagination)
 
 ---
 
@@ -429,7 +435,7 @@ npm run dev
 | Form validation — invalid email | Component | Email format validation triggers | High |
 | Form validation — invalid URL | Component | LinkedIn URL format validation triggers | Medium |
 | Form submit → API call | Integration | FormData posted correctly to /api/leads | High |
-| Leads table renders seed data | Component | All 8 mock rows display correctly | High |
+| Leads table renders seed data | Component | Seed leads display correctly | High |
 | Status filter works | Component | Filtering by Pending/Reached Out updates table | Medium |
 | Search filter works | Component | Name search filters table rows | Medium |
 | "Mark as Reached Out" button | Integration | PATCH call + table updates status | High |
@@ -582,6 +588,15 @@ npm test -- --watch       # watch mode during development
 - Public form dynamically fetches country dropdown from config (falls back to hardcoded list)
 - 6 new tests for config store
 
+### State Management: Redux Toolkit + React Query
+- **Redux Toolkit** for client-side UI state: theme toggle (`themeSlice`), typed hooks (`useAppSelector`, `useAppDispatch`)
+- **TanStack React Query** for server state: leads list (`useQuery`), status updates (`useMutation`), form config fetch/save
+- Clean separation: Redux owns what the server doesn't know about (UI preferences), React Query owns what comes from APIs
+- Dashboard layout provides both `Provider` (Redux) and `QueryClientProvider` (React Query)
+- Public form page also wrapped with `QueryClientProvider` for config-driven country dropdown
+- All components refactored: `LeadsTable`, `Sidebar`, `Settings`, `LeadForm`
+- Tests updated with provider wrappers (`renderWithProviders` helper)
+
 ### Phase 6: Tests + Documentation
 - 40 tests across 5 suites — all passing
 - Store CRUD (11), Zod validation (7), Form config (6), LeadForm (7), LeadsTable (9)
@@ -619,7 +634,7 @@ graph TB
 
         subgraph "Data Layer"
             STORE["In-Memory Store<br/>(Map&lt;string, Lead&gt;)"]
-            SEED["Seed Data<br/>(8 mock leads)"]
+            SEED["Seed Data<br/>(20 seed leads)"]
             FS["Local Filesystem<br/>(uploads/)"]
         end
 
@@ -720,10 +735,11 @@ sequenceDiagram
 | Styling | Antd tokens + Tailwind | styled-components / Tailwind-only | Antd tokens for component theming, Tailwind for layout and custom sections (hero). Best of both. |
 | Storage | In-memory Map | SQLite/Prisma | Zero setup for reviewer, sufficient for demo |
 | Auth | NextAuth credentials | Custom JWT | Real auth library, production pattern |
-| State | Antd internal + fetch | Redux | Antd Table/Form manage their own UI state. Server state is simple fetch. Redux would add boilerplate with no benefit at this scale. |
 | Validation | Antd Form rules + Zod | react-hook-form | Antd Form has native validation UX (inline errors, required marks). Zod defines the schema. No need for a third form library. |
 | File upload | Antd Upload + local fs | Custom dropzone + S3 | Antd Upload gives drag-and-drop + file list UI. Local fs for demo scope. |
 | Testing | Component + API tests | E2E (Cypress/Playwright) | Component tests give fast feedback. E2E adds setup overhead for a 24hr take-home with 2 screens. |
 | Detail view | Expandable rows | Separate detail page | Keeps user in table context, less navigation. Satisfies "all information" requirement without leaving the mock's layout. |
 | CSS-in-JS | AntD design tokens | styled-components / CSS modules | AntD `ConfigProvider` + `@ant-design/cssinjs` generates component styles at runtime from token objects. Dashboard light/dark toggle demonstrates this: flipping React state swaps the token object and cssinjs regenerates styles dynamically. |
 | Config-driven forms | JSON Schema + Settings editor | Full JsonForms library | Form structure defined as JSON Schema, stored server-side, editable via Settings. Public form fetches schema for country dropdown. Same concept as JsonForms — lighter footprint, no custom renderers needed. |
+| Client state | Redux Toolkit | React Context | `createSlice` for theme toggle. Typed hooks, devtools, scalable pattern for future UI state. |
+| Server state | TanStack React Query | Manual fetch + useState | `useQuery` + `useMutation` for all API data. Caching, background refetch, cache invalidation — eliminates manual fetch boilerplate. |

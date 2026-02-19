@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Form,
@@ -14,6 +14,7 @@ import {
 import {
   InboxOutlined,
 } from "@ant-design/icons";
+import { useQuery } from "@tanstack/react-query";
 import { leadFormSchema, VISA_OPTIONS, COUNTRIES } from "@/lib/schema";
 
 const { TextArea } = Input;
@@ -22,24 +23,22 @@ const { Dragger } = Upload;
 export default function LeadForm() {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
-  const [countries, setCountries] = useState<string[]>([...COUNTRIES]);
   const router = useRouter();
 
   // Fetch config-driven country list (falls back to hardcoded COUNTRIES)
-  useEffect(() => {
-    fetch("/api/form-config")
-      .then((res) => {
-        if (!res.ok) throw new Error("fetch failed");
-        return res.json();
-      })
-      .then((schema) => {
-        const countryEnum = schema?.properties?.country?.enum;
-        if (Array.isArray(countryEnum) && countryEnum.length > 0) {
-          setCountries(countryEnum);
-        }
-      })
-      .catch(() => {});
-  }, []);
+  const { data: formConfig } = useQuery({
+    queryKey: ["form-config"],
+    queryFn: async () => {
+      const res = await fetch("/api/form-config");
+      if (!res.ok) throw new Error("fetch failed");
+      return res.json();
+    },
+  });
+
+  const configCountries = formConfig?.properties?.country?.enum;
+  const countries = Array.isArray(configCountries) && configCountries.length > 0
+    ? configCountries
+    : COUNTRIES;
 
   const onFinish = async (values: Record<string, unknown>) => {
     // Validate with Zod

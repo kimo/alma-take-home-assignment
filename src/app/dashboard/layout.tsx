@@ -1,16 +1,20 @@
 "use client";
 
-import { useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession, SessionProvider } from "next-auth/react";
+import { Provider } from "react-redux";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { App, ConfigProvider, Spin } from "antd";
-import { lightTheme, darkTheme, ThemeContext } from "@/lib/theme";
+import { lightTheme, darkTheme } from "@/lib/theme";
+import { makeStore, type AppStore } from "@/lib/redux/store";
+import { useAppSelector } from "@/lib/redux/hooks";
 import Sidebar from "@/components/Sidebar";
 
 function DashboardGuard({ children }: { children: React.ReactNode }) {
   const { status } = useSession();
   const router = useRouter();
-  const { isDark } = useContext(ThemeContext);
+  const isDark = useAppSelector((state) => state.theme.isDark);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -40,24 +44,41 @@ function DashboardGuard({ children }: { children: React.ReactNode }) {
   );
 }
 
+function ThemedDashboard({ children }: { children: React.ReactNode }) {
+  const isDark = useAppSelector((state) => state.theme.isDark);
+
+  return (
+    <ConfigProvider theme={isDark ? darkTheme : lightTheme}>
+      <App>
+        <DashboardGuard>{children}</DashboardGuard>
+      </App>
+    </ConfigProvider>
+  );
+}
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 30_000,
+      retry: 1,
+    },
+  },
+});
+
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const [isDark, setIsDark] = useState(false);
+  const [store] = useState<AppStore>(() => makeStore());
 
   return (
     <SessionProvider>
-      <ThemeContext.Provider
-        value={{ isDark, toggleTheme: () => setIsDark((d) => !d) }}
-      >
-        <ConfigProvider theme={isDark ? darkTheme : lightTheme}>
-          <App>
-            <DashboardGuard>{children}</DashboardGuard>
-          </App>
-        </ConfigProvider>
-      </ThemeContext.Provider>
+      <Provider store={store}>
+        <QueryClientProvider client={queryClient}>
+          <ThemedDashboard>{children}</ThemedDashboard>
+        </QueryClientProvider>
+      </Provider>
     </SessionProvider>
   );
 }

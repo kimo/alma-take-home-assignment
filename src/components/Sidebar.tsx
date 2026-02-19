@@ -4,14 +4,16 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { TeamOutlined, SettingOutlined, MenuOutlined, CloseOutlined } from "@ant-design/icons";
-import { useState, useContext } from "react";
+import { useState } from "react";
 import { Switch } from "antd";
-import { ThemeContext } from "@/lib/theme";
+import { useAppSelector, useAppDispatch } from "@/lib/redux/hooks";
+import { toggleTheme } from "@/lib/redux/themeSlice";
 
 export default function Sidebar() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
-  const { isDark, toggleTheme } = useContext(ThemeContext);
+  const isDark = useAppSelector((state) => state.theme.isDark);
+  const dispatch = useAppDispatch();
 
   const navItems = [
     { href: "/dashboard", label: "Leads", icon: <TeamOutlined /> },
@@ -55,7 +57,7 @@ export default function Sidebar() {
 
       <div className="px-5 py-3 border-t border-black/10">
         <div className="flex items-center gap-2">
-          <Switch size="small" checked={isDark} onChange={toggleTheme} />
+          <Switch size="small" checked={isDark} onChange={() => dispatch(toggleTheme())} />
           <span className="text-xs text-gray-600">
             {isDark ? "Dark" : "Light"}
           </span>

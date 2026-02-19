@@ -1,10 +1,20 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Table, Input, Select, Button, message } from "antd";
+import { Table, Input, Select, Button, Spin, message } from "antd";
 import { SearchOutlined } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
 import type { Lead, LeadsResponse } from "@/lib/types";
+
+const formatDate = (date: string) =>
+  new Date(date).toLocaleString("en-US", {
+    month: "2-digit",
+    day: "2-digit",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
 
 export default function LeadsTable() {
   const [leads, setLeads] = useState<Lead[]>([]);
@@ -20,7 +30,7 @@ export default function LeadsTable() {
     try {
       const params = new URLSearchParams({
         page: String(page),
-        limit: "8",
+        limit: "13",
         search,
         status: statusFilter === "all" ? "" : statusFilter,
       });
@@ -67,15 +77,7 @@ export default function LeadsTable() {
       dataIndex: "submittedAt",
       key: "submittedAt",
       sorter: (a, b) => new Date(a.submittedAt).getTime() - new Date(b.submittedAt).getTime(),
-      render: (date: string) =>
-        new Date(date).toLocaleString("en-US", {
-          month: "2-digit",
-          day: "2-digit",
-          year: "numeric",
-          hour: "numeric",
-          minute: "2-digit",
-          hour12: true,
-        }),
+      render: (date: string) => formatDate(date),
     },
     {
       title: "Status",
@@ -83,7 +85,13 @@ export default function LeadsTable() {
       key: "status",
       sorter: (a, b) => a.status.localeCompare(b.status),
       render: (status: string) => (
-        <span className="text-sm">
+        <span
+          className={`text-xs px-2 py-1 rounded-full ${
+            status === "PENDING"
+              ? "bg-yellow-100 text-yellow-800"
+              : "bg-green-100 text-green-800"
+          }`}
+        >
           {status === "REACHED_OUT" ? "Reached Out" : "Pending"}
         </span>
       ),
@@ -188,29 +196,167 @@ export default function LeadsTable() {
         />
       </div>
 
-      {/* Table */}
-      <Table
-        columns={columns}
-        dataSource={leads}
-        rowKey="id"
-        loading={loading}
-        scroll={{ x: 700 }}
-        expandable={{
-          expandedRowRender,
-          expandedRowKeys,
-          onExpand: (expanded, record) => {
-            setExpandedRowKeys(expanded ? [record.id] : []);
-          },
-        }}
-        pagination={{
-          current: page,
-          pageSize: 8,
-          total,
-          onChange: setPage,
-          showSizeChanger: false,
-          placement: "end",
-        }}
-      />
+      {/* Mobile card view */}
+      <div className="lg:hidden">
+        {loading ? (
+          <div className="flex justify-center py-12">
+            <Spin size="large" />
+          </div>
+        ) : leads.length === 0 ? (
+          <div className="text-center text-gray-400 py-12">No leads found</div>
+        ) : (
+          <>
+            <div className="space-y-3">
+              {leads.map((lead) => {
+                const isExpanded = expandedRowKeys.includes(lead.id);
+                return (
+                  <div
+                    key={lead.id}
+                    className="bg-white rounded-lg border border-gray-200 p-4"
+                    onClick={() =>
+                      setExpandedRowKeys(isExpanded ? [] : [lead.id])
+                    }
+                  >
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <div className="font-medium text-gray-900">
+                          {lead.firstName} {lead.lastName}
+                        </div>
+                        <div className="text-sm text-gray-500 mt-0.5">
+                          {lead.country}
+                        </div>
+                      </div>
+                      <span
+                        className={`text-xs px-2 py-1 rounded-full ${
+                          lead.status === "PENDING"
+                            ? "bg-yellow-100 text-yellow-800"
+                            : "bg-green-100 text-green-800"
+                        }`}
+                      >
+                        {lead.status === "REACHED_OUT"
+                          ? "Reached Out"
+                          : "Pending"}
+                      </span>
+                    </div>
+                    <div className="text-xs text-gray-400 mt-1.5">
+                      {formatDate(lead.submittedAt)}
+                    </div>
+
+                    {isExpanded && (
+                      <div className="mt-3 pt-3 border-t border-gray-100 text-sm space-y-2">
+                        <div>
+                          <span className="text-gray-500">Email:</span>{" "}
+                          <span className="text-gray-900">{lead.email}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-500">LinkedIn:</span>{" "}
+                          <a
+                            href={lead.linkedIn}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:underline break-all"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {lead.linkedIn}
+                          </a>
+                        </div>
+                        <div>
+                          <span className="text-gray-500">Visa:</span>{" "}
+                          <span className="text-gray-900">
+                            {lead.visaInterests.join(", ")}
+                          </span>
+                        </div>
+                        {lead.resumeFileName && (
+                          <div>
+                            <span className="text-gray-500">Resume:</span>{" "}
+                            <a
+                              href={`/api/leads/${lead.id}/download`}
+                              className="text-blue-600 hover:underline"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              {lead.resumeFileName}
+                            </a>
+                          </div>
+                        )}
+                        <div>
+                          <span className="text-gray-500">Message:</span>{" "}
+                          <span className="text-gray-900">
+                            {lead.helpMessage}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
+                    {lead.status === "PENDING" && (
+                      <div className="mt-3">
+                        <Button
+                          size="small"
+                          type="primary"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleStatusUpdate(lead.id);
+                          }}
+                        >
+                          Mark as Reached Out
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Mobile pagination */}
+            {total > 13 && (
+              <div className="flex items-center justify-between mt-4 text-sm text-gray-500">
+                <button
+                  className="px-3 py-1.5 rounded border border-gray-200 disabled:opacity-40"
+                  disabled={page === 1}
+                  onClick={() => setPage(page - 1)}
+                >
+                  Previous
+                </button>
+                <span>
+                  Page {page} of {Math.ceil(total / 13)}
+                </span>
+                <button
+                  className="px-3 py-1.5 rounded border border-gray-200 disabled:opacity-40"
+                  disabled={page >= Math.ceil(total / 13)}
+                  onClick={() => setPage(page + 1)}
+                >
+                  Next
+                </button>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+
+      {/* Desktop table */}
+      <div className="hidden lg:block">
+        <Table
+          columns={columns}
+          dataSource={leads}
+          rowKey="id"
+          loading={loading}
+          scroll={{ x: 700 }}
+          expandable={{
+            expandedRowRender,
+            expandedRowKeys,
+            onExpand: (expanded, record) => {
+              setExpandedRowKeys(expanded ? [record.id] : []);
+            },
+          }}
+          pagination={{
+            current: page,
+            pageSize: 13,
+            total,
+            onChange: setPage,
+            showSizeChanger: false,
+            placement: "end",
+          }}
+        />
+      </div>
     </div>
   );
 }

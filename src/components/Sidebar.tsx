@@ -90,7 +90,7 @@ export default function Sidebar() {
       </aside>
 
       {/* Desktop sidebar */}
-      <aside className="hidden lg:flex w-[220px] min-h-screen bg-[#c8d9a3] text-gray-900 flex-col shrink-0">
+      <aside className="hidden lg:flex w-[220px] h-full bg-[#c8d9a3] text-gray-900 flex-col shrink-0">
         {sidebarContent}
       </aside>
     </>

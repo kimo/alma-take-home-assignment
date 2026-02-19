@@ -29,9 +29,9 @@ function DashboardGuard({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex h-screen overflow-hidden">
       <Sidebar />
-      <main className="flex-1 bg-gray-50 p-4 pt-16 lg:p-8">{children}</main>
+      <main className="flex-1 bg-gray-50 p-4 pt-16 lg:p-8 overflow-auto">{children}</main>
     </div>
   );
 }
